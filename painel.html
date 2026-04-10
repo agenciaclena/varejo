@@ -78,6 +78,67 @@ button{
   font-size:12px;
   margin-top:4px;
 }
+
+
+.metas{
+  display:flex;
+  gap:20px;
+  margin-top:12px;
+}
+
+.bola{
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:800;
+  position:relative;
+}
+
+.bola::before{
+  content:"";
+  position:absolute;
+  width:60px;
+  height:60px;
+  background:#fff;
+  border-radius:50%;
+}
+
+.bola span{
+  position:relative;
+  z-index:2;
+}
+
+/* PRATA */
+.prata{
+  background:conic-gradient(#2563eb var(--p), #e5e7eb 0);
+}
+
+/* OURO */
+.ouro{
+  background:conic-gradient(#eab308 var(--p), #e5e7eb 0);
+}
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+  
 </style>
 </head>
 
@@ -363,6 +424,26 @@ if(isAlmoco){
 
   return result
 }
+
+
+
+// ================= METAS =================
+const METAS = {
+  "DELÍCIA": { prata: 545000, ouro: 575000 },
+  "VILLA": { prata: 746600, ouro: 833000 },
+  "PADARIA": { prata: 720000, ouro: 750000 },
+  "MERCATTO RESTAURANTE": { prata: 850000, ouro: 900000 },
+  "MERCATTO EMPÓRIO": { prata: 650000, ouro: 690000 }
+}
+
+
+
+
+
+
+
+
+  
 // ================= RENDER =================
 function render(dados){
 
@@ -376,7 +457,36 @@ function render(dados){
     grid.innerHTML += `
       <div class="card">
         <div class="empresa">${emp}</div>
-        <div class="valor">${brl(d.total)}</div>
+<div class="valor">${brl(d.total)}</div>
+
+${(() => {
+
+  const meta = METAS[emp]
+  if(!meta) return ""
+
+  const pctPrata = Math.min((d.total / meta.prata) * 100, 100)
+  const pctOuro = Math.min((d.total / meta.ouro) * 100, 100)
+
+  return `
+    <div class="metas">
+
+      <div class="bola prata" style="--p:${pctPrata}%">
+        <span>${pctPrata.toFixed(0)}%</span>
+      </div>
+
+      <div class="bola ouro" style="--p:${pctOuro}%">
+        <span>${pctOuro.toFixed(0)}%</span>
+      </div>
+
+    </div>
+
+    <div style="font-size:11px;margin-top:8px;color:#64748b">
+      PRATA: ${brl(meta.prata)}<br>
+      OURO: ${brl(meta.ouro)}
+    </div>
+  `
+})()}
+
 <div>${d.vendas} vendas</div>
 
 <div style="margin-top:6px;padding:6px;background:#f1f5f9;border-radius:6px;font-size:12px">
