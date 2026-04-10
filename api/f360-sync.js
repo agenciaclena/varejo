@@ -49,8 +49,10 @@ export default async function handler(req, res){
       timeZone: "America/Bahia"
     })
 
-    const inicio = hoje
-    const fim = hoje
+const inicio = new Date(Date.now() - 30 * 86400000)
+  .toLocaleDateString("en-CA", { timeZone: "America/Bahia" })
+
+const fim = hoje
 
     console.log("📅 PERÍODO:", inicio, "→", fim)
 
