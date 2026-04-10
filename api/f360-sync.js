@@ -24,8 +24,13 @@ const hoje = new Date().toLocaleDateString("en-CA", {
 
 
     
-const inicio = hoje
+const inicio = new Date(Date.now() - 7 * 86400000)
+  .toLocaleDateString("en-CA", { timeZone: "America/Bahia" })
+
 const fim = hoje
+
+
+    
 
     let pagina = 1
     let totalInseridos = 0
