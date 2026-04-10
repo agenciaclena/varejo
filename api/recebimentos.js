@@ -15,7 +15,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Empresa não informada" });
     }
 
-    // 🔹 Mapeamento das bases específicas por empresa
     const urls = {
       VAREJO_URL_MERCATTO: "https://mercatto.varejofacil.com/api/v1/venda/cupons-fiscais",
       VAREJO_URL_VILLA: "https://deliciagourmet.varejofacil.com/api/v1/venda/cupons-fiscais",
