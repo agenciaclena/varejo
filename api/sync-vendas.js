@@ -1,15 +1,29 @@
 import { createClient } from "@supabase/supabase-js"
 
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE
+)
+
+
 export default async function handler(req, res){
+  const origem = req.headers["x-source"] || "cron"
 
-  console.log("🚀 SYNC COMPLETO START")
+  console.log("📡 Origem da execução:", origem)
+  const startGlobal = Date.now() // 🔥 AQUI EXATO
 
+const { data: lock } = await supabase
+  .from("controle_sync")
+  .select("*")
+  .eq("id",1)
+  .single()
+
+if(lock?.rodando){
+  console.log("⛔ JÁ ESTÁ RODANDO")
+  return res.json({ ok:false, message:"Já em execução" })
+}
+  
   try{
-
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE
-    )
 
     const empresas = [
       { id:"VAREJO_URL_DELICIA", nome:"DELÍCIA" },
@@ -18,22 +32,50 @@ export default async function handler(req, res){
       { id:"VAREJO_URL_MERCATTO", nome:"MERCATTO" }
     ]
 
-    let totalNovos = 0
-    let totalExistentes = 0
+    function dataBahia(offset = 0){
+      const d = new Date(
+        new Date().toLocaleString("en-US", { timeZone:"America/Bahia" })
+      )
+      d.setDate(d.getDate() + offset)
+      return d.toISOString().slice(0,10)
+    }
+
+    const agora = new Date(
+      new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+    )
+
+    const inicio = agora.getHours() < 2 ? dataBahia(-1) : dataBahia(0)
+    const fim = dataBahia(0)
+
+    console.log("📅 PERÍODO:", inicio, "→", fim)
+
+    let totalInseridos = 0
     let totalPagamentos = 0
     let totalErros = 0
 
-    const hoje = new Date().toISOString().slice(0,10)
-
     for(const emp of empresas){
 
+
+const agora = new Date(
+  new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+)
+
+const hora = agora.getHours()
+
+// 🔥 REGRA PADARIA (RODA SÓ ATÉ 22H)
+if(emp.id === "VAREJO_URL_PADARIA" && hora >= 22){
+  console.log("🌙 PADARIA ignorada após 22h")
+  continue
+}
+
+
+
+
+      
       console.log("━━━━━━━━━━━━━━━━━━━━━━━")
       console.log("🏢 EMPRESA:", emp.nome)
-      console.log("📅 DATA:", hoje)
 
       try{
-
-        // ================= LOGIN =================
         const loginResp = await fetch("https://varejo-six.vercel.app/api/login",{
           method:"POST",
           headers:{ "Content-Type":"application/json" },
@@ -51,123 +93,142 @@ export default async function handler(req, res){
 
         console.log("✅ TOKEN OK")
 
-        // ================= PAGINAÇÃO COMPLETA =================
-        let pagina = 0
-        const limite = 500
-        let totalEmpresa = 0
+const count = emp.id === "VAREJO_URL_PADARIA" ? 200 : 500
 
-        while(true){
+let pagina = 1
+const idsProcessados = new Set()
+let totalProcessados = 0
 
-          console.log("📄 PAGINA:", pagina)
-
+while(true){
           const resp = await fetch("https://varejo-six.vercel.app/api/recebimentos",{
             method:"POST",
             headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify({
-              token,
-              empresa: emp.id,
-              dataInicio: hoje,
-              dataFim: hoje,
-              pagina,
-              limite
-            })
+body: JSON.stringify({
+  token,
+  empresa: emp.id,
+  dataInicio: inicio,
+  dataFim: fim,
+  pagina
+})
           })
 
-          const json = await resp.json()
-          const cupons = json.items || []
+if(!resp.ok){
+  console.log("❌ ERRO API:", resp.status)
+  break
+}
 
-          console.log(`📦 RECEBIDOS: ${cupons.length}`)
+const json = await resp.json()
+  
+  const items = json.items || []
 
-          if(cupons.length === 0){
-            console.log("🏁 FIM")
+console.log(`📡 Página ${pagina} | itens=${items.length}`)
+          if(!items.length){
+            console.log("📭 Fim da API")
             break
           }
 
-          totalEmpresa += cupons.length
-
-          // ================= EXISTENTES =================
-          const uniqueIds = cupons.map(c => emp.id + "_" + (c.id || c.vendaId))
-
-          const { data: existentes } = await supabase
-            .from("cupons_importados")
-            .select("unique_id")
-            .in("unique_id", uniqueIds)
-
-          const existentesSet = new Set((existentes || []).map(e => e.unique_id))
-
-          const novos = []
+          const inserts = []
           const pagamentos = []
 
-          for(const cupom of cupons){
+         let novos = 0
 
-            const venda_id = cupom.id || cupom.vendaId
-            if(!venda_id) continue
+for(const v of items){
 
-            const unique_id = emp.id + "_" + venda_id
+  const venda_id = v.id
+  if(!venda_id) continue
 
-            if(existentesSet.has(unique_id)){
-              totalExistentes++
-              continue
-            }
+  const unique_id = `${emp.id}_${venda_id}`
 
-            const valor_total = Number(cupom.valorTotal || 0)
+  // 🔥 CONTROLE DE DUPLICAÇÃO
+  if(idsProcessados.has(unique_id)){
+    continue
+  }
 
-            novos.push({
-              unique_id,
-              empresa: emp.nome,
-              empresa_id: emp.id,
-              venda_id,
-              data: cupom.data,
-              valor_total,
-              valor_liquido: valor_total,
-              finalizadora_principal: cupom.finalizacoes?.[0]?.descricao || null,
-              cancelado: !!cupom.cancelada,
-              raw: cupom
-            })
+  idsProcessados.add(unique_id)
+  novos++
+  totalProcessados++
 
-            if(Array.isArray(cupom.finalizacoes)){
-              cupom.finalizacoes.forEach(f=>{
-                pagamentos.push({
-                  cupom_unique_id: unique_id,
-                  finalizadora_id: String(f.finalizadoraId),
-                  finalizadora_nome: f.descricao,
-                  valor: Number(f.valor || 0)
-                })
-              })
-            }
-          }
+  const valor = Number(v.valor || 0)
+  const desconto = Number(v.desconto || 0)
+  const acrescimo = Number(v.acrescimo || 0)
 
-          console.log("🆕 NOVOS:", novos.length)
+  const valor_total = valor + acrescimo
+  const valor_liquido = valor - desconto
 
-          if(novos.length){
-            const { error } = await supabase
-              .from("cupons_importados")
-              .insert(novos)
+  const cancelado = (v.qtdItensCancelados || 0) > 0
 
-            if(error){
-              console.log("❌ ERRO INSERT:", error.message)
-              totalErros++
-            }else{
-              console.log("✅ INSERIDOS:", novos.length)
-              totalNovos += novos.length
-            }
-          }
+  inserts.push({
+    unique_id,
+    empresa: emp.nome,
+    empresa_id: emp.id,
+    venda_id,
+    data: v.dataVenda,
+    valor,
+    valor_total,
+    valor_liquido,
+    finalizadora_principal: v.finalizacoes?.[0]?.descricao || null,
+    cancelado,
+    raw: v
+  })
 
-          if(pagamentos.length){
-            await supabase.from("cupons_pagamentos").insert(pagamentos)
-            totalPagamentos += pagamentos.length
-          }
+  if(Array.isArray(v.finalizacoes)){
+    v.finalizacoes.forEach(f=>{
+      pagamentos.push({
+        cupom_unique_id: unique_id,
+        finalizadora_id: String(f.finalizadoraId),
+        finalizadora_nome: f.descricao,
+        valor: Number(f.valor || 0)
+      })
+    })
+  }
+}
 
-          // próxima página
-          if(cupons.length < limite){
-            console.log("🏁 ÚLTIMA PAGINA")
-            break
-          }
+if(inserts.length){
+
+  const { error } = await supabase
+    .from("cupons_importados")
+    .upsert(inserts, { onConflict:"unique_id" })
+
+  if(error){
+    totalErros++
+  }else{
+    totalInseridos += inserts.length
+  }
+}
+
+// 🔥 FORA DO IF
+if(pagamentos.length){
+  await supabase
+    .from("cupons_pagamentos")
+    .upsert(pagamentos, { onConflict:"cupom_unique_id,finalizadora_id" })
+}
+
+          // 🔥 SE VEIO MENOS QUE 500 → ACABOU
+console.log("🆕 Novos:", novos)
+console.log("📊 Total processado:", totalProcessados)
+
+// 🔥 PARADA REAL (ESSENCIAL)
+if(novos === 0){
+  console.log("🛑 Nenhum novo → FINALIZANDO")
+  break
+}
+
+// 🔥 FIM REAL
+if(items.length < count){
+  console.log("🏁 Última página")
+  break
+}
 
           pagina++
+// 🔥 evita travar API
+await new Promise(r => setTimeout(r, 500))
+          // 🔥 LIMITE DE SEGURANÇA
+// 🔥 LIMITE PADARIA
+if(pagina > 50){
+  console.log("⚠️ Limite de segurança atingido")
+  break
+}
         }
-
-        console.log(`📊 TOTAL EMPRESA ${emp.nome}:`, totalEmpresa)
 
       }catch(e){
         console.log("💥 ERRO:", emp.nome, e.message)
@@ -175,20 +236,44 @@ export default async function handler(req, res){
       }
     }
 
+    const tempo = ((Date.now() - startGlobal)/1000).toFixed(2)
+
     console.log("━━━━━━━━━━━━━━━━━━━━━━━")
-    console.log("🔥 RESUMO FINAL")
-    console.log("🆕 NOVOS:", totalNovos)
-    console.log("♻️ EXISTENTES:", totalExistentes)
-    console.log("💳 PAGAMENTOS:", totalPagamentos)
-    console.log("❌ ERROS:", totalErros)
+    console.log("🔥 FINALIZADO")
+    console.log("🆕 Inseridos:", totalInseridos)
+    console.log("💳 Pagamentos:", totalPagamentos)
+    console.log("❌ Erros:", totalErros)
+    console.log("⏱ Tempo:", tempo,"s")
+await supabase
+  .from("controle_sync")
+  .update({ rodando:false, atualizado_em:new Date() })
+  .eq("id",1)
 
     return res.json({
       ok:true,
-      novos: totalNovos,
-      existentes: totalExistentes
+      inseridos: totalInseridos,
+      pagamentos: totalPagamentos,
+      erros: totalErros,
+      tempo
     })
 
   }catch(e){
-    return res.status(500).json({ error:e.message })
+
+
+    console.log("❌ ERRO GLOBAL:", e)
+
+
+
+await supabase
+  .from("controle_sync")
+  .update({ rodando:false, atualizado_em:new Date() })
+  .eq("id",1)
+
+    
+
+    return res.status(500).json({
+      ok:false,
+      error:e.message
+    })
   }
 }
