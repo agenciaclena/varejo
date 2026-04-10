@@ -355,14 +355,16 @@ async function load(){
 
 const data = await carregarTudo()
 
+preencherFiltroStatus(data) // 🔥 AQUI
 const filtro = document.getElementById("filtroStatus").value
 
 let filtrado = data
 
 if(filtro){
   filtrado = data.filter(v=>{
-    if(filtro === "Aberto") return v.status?.includes("Aberto")
-    if(filtro === "Pago") return !v.status?.includes("Aberto")
+if(filtro){
+  filtrado = data.filter(v => v.status === filtro)
+}
   })
 }
 
@@ -388,6 +390,30 @@ load()
 // 🔥 AUTO UPDATE 30 MIN
 setInterval(load, 1800000)
 
+
+
+
+
+
+function preencherFiltroStatus(data){
+
+  const select = document.getElementById("filtroStatus")
+
+  // pega status únicos
+  const statusUnicos = [...new Set(data.map(v => v.status).filter(Boolean))]
+
+  // limpa (mantém "Todos")
+  select.innerHTML = `<option value="">Todos Status</option>`
+
+  // adiciona todos
+  statusUnicos.forEach(s=>{
+    select.innerHTML += `<option value="${s}">${s}</option>`
+  })
+}
+
+
+
+  
 </script>
 
 </body>
