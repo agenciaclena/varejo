@@ -5,7 +5,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 )
 
-let rodando = false
 
 export default async function handler(req, res){
   const origem = req.headers["x-source"] || "cron"
@@ -13,11 +12,16 @@ export default async function handler(req, res){
   console.log("📡 Origem da execução:", origem)
   const startGlobal = Date.now() // 🔥 AQUI EXATO
 
-// ativa lock
-await supabase
+const { data: lock } = await supabase
   .from("controle_sync")
-  .update({ rodando:true, atualizado_em:new Date() })
+  .select("*")
   .eq("id",1)
+  .single()
+
+if(lock?.rodando){
+  console.log("⛔ JÁ ESTÁ RODANDO")
+  return res.json({ ok:false, message:"Já em execução" })
+}
   
   try{
 
@@ -244,7 +248,6 @@ await supabase
   .from("controle_sync")
   .update({ rodando:false, atualizado_em:new Date() })
   .eq("id",1)
-    rodando = false
 
     return res.json({
       ok:true,
@@ -256,7 +259,6 @@ await supabase
 
   }catch(e){
 
-    rodando = false
 
     console.log("❌ ERRO GLOBAL:", e)
 
