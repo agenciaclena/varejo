@@ -198,11 +198,15 @@ async function carregarTudo(){
 // ================= PROCESS =================
 function process(data){
 
-  const result = {}
-  const idsProcessados = new Set()
+const result = {}
   const hoje = new Date().toLocaleDateString("en-CA",{timeZone:"America/Bahia"})
-  const mesAtual = new Date().getMonth()
-  const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1
+const agora = new Date()
+
+const mesAtual = new Date(
+  agora.toLocaleString("en-US",{timeZone:"America/Bahia"})
+).getMonth()
+
+const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1
 
   data.forEach(v=>{
 
@@ -212,8 +216,9 @@ function process(data){
     const dataVenc = v.vencimento
 
     const dataObj = new Date(dataVenc)
-    const dataStr = dataObj.toISOString().slice(0,10)
-
+const dataStr = dataObj.toLocaleDateString("en-CA",{
+  timeZone:"America/Bahia"
+})
     if(!result[empresa]){
       result[empresa] = {
         hoje:0,
@@ -231,11 +236,7 @@ function process(data){
 
 if(dataStr === hoje){
   d.hoje += valor
-
-  if(!idsProcessados.has(v.parcela_id)){
-    d.hojeQtd++
-    idsProcessados.add(v.parcela_id)
-  }
+  d.hojeQtd++
 }
     const mes = dataObj.getMonth()
 
@@ -244,10 +245,13 @@ if(dataStr === hoje){
 
 const s = status.toLowerCase()
 
-if(s.includes("aberto")){
+if(s.includes("aberto") || s.includes("vencer")){
   d.aberto++
 }
-else if(s.includes("pago")){
+else if(
+  s.includes("pago") ||
+  s.includes("liquidado")
+){
   d.pago++
 }
 else if(s.includes("cancelado")){
