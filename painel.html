@@ -337,8 +337,7 @@ const troco = Number(f.troco || 0)
 const valor = valorBruto - troco
   
   const idf = Number(f.finalizadoraId)
-  const nome = MAPA[emp]?.[idf] || "OUTROS"
-
+const nome = MAPA[empBase]?.[idf] || "OUTROS"
   result[emp].finais[nome] =
     (result[emp].finais[nome] || 0) + valor
 })
