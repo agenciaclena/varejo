@@ -7,7 +7,6 @@ const supabase = createClient(
 export default async function handler(req, res){
 
   try{
-
     const { empresa, empresa_nome, dataInicio, dataFim } = req.body
 
     if(!empresa){
