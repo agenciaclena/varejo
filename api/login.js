@@ -3,16 +3,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
+
   try {
     const { empresa } = req.body;
+
+    // 🔹 URLs específicas por empresa
     const urls = {
-      VAREJO_URL_MERCATTO: "https://mercatto.varejofacil.com/api/auth",         // Mercatto Delícia
+      VAREJO_URL_MERCATTO: "https://mercatto.varejofacil.com/api/auth",        
       VAREJO_URL_VILLA: "https://deliciagourmet.varejofacil.com/api/auth",      // Villa Gourmet
       VAREJO_URL_PADARIA: "https://mercattodelicia.varejofacil.com/api/auth",   // Padaria Delícia
       VAREJO_URL_DELICIA: "https://villachopp.varejofacil.com/api/auth"         // Varejo Delícia
     };
 
-    // 🔹 Escolhe a base correta
     const BASE_URL = urls[empresa];
     if (!BASE_URL) {
       return res.status(400).json({ error: `Empresa '${empresa}' não reconhecida.` });
