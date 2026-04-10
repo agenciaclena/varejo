@@ -329,6 +329,37 @@ return {
 }
 }
 
+
+
+
+
+function hojeOperacional(){
+
+  const now = new Date()
+
+  const inicio = new Date(now)
+  inicio.setHours(5,0,0,0)
+
+  const fim = new Date(inicio)
+  fim.setDate(fim.getDate()+1)
+  fim.setHours(4,0,0,0)
+
+  return { inicio, fim }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 // ================= PROCESS =================
 function process(data, inicio, fim){
 
@@ -455,19 +486,33 @@ function getMetaEmpresa(nome){
 
   
 // ================= RENDER =================
-function render(dados){
-
+function render(dadosMes, dadosDia){
   const grid = document.getElementById("grid")
   grid.innerHTML=""
 
   Object.keys(dados).forEach(emp=>{
 
-    const d = dados[emp]
+const d = dadosMes[emp] || {}
+const dHoje = dadosDia[emp] || { total:0, almocoTotal:0, vendas:0 }
 
+
+    
     grid.innerHTML += `
       <div class="card">
         <div class="empresa">${emp}</div>
 <div class="valor">${brl(d.total)}</div>
+
+
+<div style="font-size:13px;color:#64748b;margin-top:4px">
+  Hoje: <b>${brl(dHoje.total)}</b> (${dHoje.vendas} vendas)
+</div>
+
+<div style="font-size:12px;color:#64748b">
+  🍽️ Almoço hoje: <b>${brl(dHoje.almocoTotal)}</b>
+</div>
+
+
+
 
 ${(() => {
 
@@ -507,13 +552,19 @@ const meta = getMetaEmpresa(emp)
 <div style="color:red;font-size:12px">
   ❌ ${d.cancelados} cancelados (${brl(d.valorCancelado)})
 </div>
-        ${
-          Object.entries(d.finais)
-          .sort((a,b)=>b[1]-a[1])
-          .map(f=>`<div class="item">${f[0]} <b>${brl(f[1])}</b></div>`)
-          .join("")
-        }
-      </div>
+<button onclick="toggleFin('${emp}')"
+style="margin-top:10px;padding:6px 10px;border:none;border-radius:6px;background:#111;color:#fff;font-size:11px">
+  Ver finalizadoras
+</button>
+
+<div id="fin-${emp}" style="display:none;margin-top:8px">
+  ${
+    Object.entries(d.finais)
+    .sort((a,b)=>b[1]-a[1])
+    .map(f=>`<div class="item">${f[0]} <b>${brl(f[1])}</b></div>`)
+    .join("")
+  }
+</div>
     `
   })
 
@@ -577,9 +628,12 @@ async function load(inicio, fim){
 
   console.log("📊 TOTAL CARREGADO:", all.length)
 
-  const dados = process(all, inicio, fim)
+const dadosMes = process(all, inicio, fim)
 
-  render(dados)
+const hoje = hojeOperacional()
+const dadosDia = process(all, hoje.inicio, hoje.fim)
+
+render(dadosMes, dadosDia)
 
   document.getElementById("status").innerText =
     "Atualizado " + new Date().toLocaleTimeString()
