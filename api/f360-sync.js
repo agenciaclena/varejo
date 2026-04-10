@@ -7,6 +7,14 @@ const supabase = createClient(
 
 export default async function handler(req, res){
 
+  // 🔥 BLOQUEIA GET (OBRIGA POST)
+  if(req.method !== "POST"){
+    return res.status(405).json({ error:"Use POST" })
+  }
+
+  // 🔥 DESATIVA CACHE
+  res.setHeader("Cache-Control", "no-store, max-age=0")
+
   try{
 
     const hoje = new Date().toISOString().slice(0,10)
