@@ -201,15 +201,7 @@ function process(data){
   const result = {}
 
   const hoje = new Date().toLocaleDateString("en-CA",{timeZone:"America/Bahia"})
-const agora = new Date(
-  new Date().toLocaleString("en-US",{timeZone:"America/Bahia"})
-)
-
-const mesAtual = agora.getMonth()
-  
-  
-  
-  
+  const mesAtual = new Date().getMonth()
   const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1
 
   data.forEach(v=>{
@@ -220,9 +212,8 @@ const mesAtual = agora.getMonth()
     const dataVenc = v.vencimento
 
     const dataObj = new Date(dataVenc)
-const dataStr = dataObj.toLocaleDateString("en-CA",{
-  timeZone:"America/Bahia"
-})
+    const dataStr = dataObj.toISOString().slice(0,10)
+
     if(!result[empresa]){
       result[empresa] = {
         hoje:0,
@@ -248,47 +239,16 @@ const dataStr = dataObj.toLocaleDateString("en-CA",{
     if(mes === mesAtual) d.mes += valor
     if(mes === mesAnterior) d.mesAnterior += valor
 
-// 🔥 PARSE DO JSON PRIMEIRO (ANTES DE USAR)
-let raw = v.raw
+    if(status.includes("Aberto")) d.aberto++
+    else d.pago++
 
-if(typeof raw === "string"){
-  try{
-    raw = JSON.parse(raw)
-  }catch{
-    raw = {}
-  }
-}
+    const raw = v.raw || {}
 
-// 🔥 STATUS CORRETO
-const s = (status || "").toLowerCase()
-
-if(raw?.Cancelada === true){
-  d.cancelado = (d.cancelado || 0) + 1
-}
-else if(
-  s.includes("aberto") ||
-  s.includes("vencer")
-){
-  d.aberto++
-}
-else if(
-  s.includes("pago") ||
-  s.includes("liquidado") ||
-  s.includes("baixado")
-){
-  d.pago++
-}
-else{
-  d.outros = (d.outros || 0) + 1
-}
-
-// 🔥 PLANO DE CONTAS (SEM DUPLICAÇÃO)
-raw?.Rateio?.forEach(r=>{
-  const nome = r.PlanoDeContas || "OUTROS"
-  const val = Number(r.Valor || 0)
-
-  d.categorias[nome] = (d.categorias[nome] || 0) + val
-})
+    raw?.Rateio?.forEach(r=>{
+      const nome = r.PlanoDeContas || "OUTROS"
+      const val = Number(r.Valor || 0)
+      d.categorias[nome] = (d.categorias[nome] || 0) + val
+    })
 
     const pagamento = v.meio_pagamento || "OUTROS"
     d.pagamentos[pagamento] =
@@ -351,6 +311,7 @@ function render(dados){
           ${
             Object.entries(d.categorias)
             .sort((a,b)=>b[1]-a[1])
+            .slice(0,5)
             .map(c=>`<div class="row">${c[0]} <b>${brl(c[1])}</b></div>`)
             .join("")
           }
@@ -363,6 +324,7 @@ function render(dados){
           ${
             Object.entries(d.pagamentos)
             .sort((a,b)=>b[1]-a[1])
+            .slice(0,5)
             .map(p=>`<div class="row">${p[0]} <b>${brl(p[1])}</b></div>`)
             .join("")
           }
