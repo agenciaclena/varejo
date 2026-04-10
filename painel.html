@@ -294,8 +294,21 @@ const d = new Date(p.data)
 // NÃO mexe no horário aqui
 if(d < inicio || d > fim) return
 
-    const emp = v.empresa_id
+const empBase = v.empresa_id
 
+const caixa = Number(raw?.caixa || raw?.numeroCaixa || raw?.caixaId || 0)
+
+let emp = empBase
+
+if(empBase === "VAREJO_URL_MERCATTO"){
+
+  if(caixa >= 1 && caixa <= 5){
+    emp = "MERCATTO EMPÓRIO"
+  } else if(caixa >= 6){
+    emp = "MERCATTO RESTAURANTE"
+  }
+
+}
     if(!result[emp]){
       result[emp]={
         total:0,
