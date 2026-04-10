@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>PAINEL</title>
+<title>PAINEL DV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -317,8 +317,12 @@ if(d < inicio || d > fim) return
 const totalCupom = p.valor
 
 p.finais.forEach(f=>{
-  const valor = Number(f.valor || 0)
+const valorBruto = Number(f.valor || 0)
+const troco = Number(f.troco || 0)
 
+// 🔥 REMOVE TROCO
+const valor = valorBruto - troco
+  
   const idf = Number(f.finalizadoraId)
   const nome = MAPA[emp]?.[idf] || "OUTROS"
 
@@ -499,6 +503,5 @@ function lerJSONSeguro(raw){
   }
 }
 </script>
-
 </body>
 </html>
