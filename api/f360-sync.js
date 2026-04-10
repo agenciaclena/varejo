@@ -91,15 +91,17 @@ const rows = parcelas
         atualizado_em: new Date()
       }))
 
-      const { error } = await supabase
-        .from("f360_parcelas")
-        .upsert(rows, { onConflict: "parcela_id" })
+const { data, error } = await supabase
+  .from("f360_parcelas")
+  .upsert(rows, { onConflict: "parcela_id" })
+  .select()
 
-      if(error){
-        console.log("❌ ERRO SUPABASE:", error)
-      } else {
-        totalInseridos += rows.length
-      }
+if(error){
+  console.log("❌ ERRO SUPABASE:", error)
+}else{
+  console.log("✅ UPSERT:", data.length)
+  totalInseridos += data.length
+}
 
       // 🔥 PARA SE ACABOU
 const totalPaginas = Number(json?.Result?.QuantidadeDePaginas || 1)
