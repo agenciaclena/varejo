@@ -212,8 +212,9 @@ function process(data){
     const dataVenc = v.vencimento
 
     const dataObj = new Date(dataVenc)
-    const dataStr = dataObj.toISOString().slice(0,10)
-
+const dataStr = dataObj.toLocaleDateString("en-CA",{
+  timeZone:"America/Bahia"
+})
     if(!result[empresa]){
       result[empresa] = {
         hoje:0,
@@ -241,7 +242,7 @@ function process(data){
 
 const s = (status || "").toLowerCase()
 
-if(v.raw?.Cancelada === true){
+if(raw?.Cancelada === true){
   d.cancelado = (d.cancelado || 0) + 1
 }
 else if(
@@ -261,9 +262,22 @@ else{
   d.outros = (d.outros || 0) + 1
 }
 
-    const raw = v.raw || {}
+  let raw = v.raw
 
-    raw?.Rateio?.forEach(r=>{
+if(typeof raw === "string"){
+  try{
+    raw = JSON.parse(raw)
+  }catch{
+    raw = {}
+  }
+}
+
+raw?.Rateio?.forEach(r=>{
+  const nome = r.PlanoDeContas || "OUTROS"
+  const val = Number(r.Valor || 0)
+
+  d.categorias[nome] = (d.categorias[nome] || 0) + val
+})
       const nome = r.PlanoDeContas || "OUTROS"
       const val = Number(r.Valor || 0)
       d.categorias[nome] = (d.categorias[nome] || 0) + val
@@ -330,7 +344,6 @@ function render(dados){
           ${
             Object.entries(d.categorias)
             .sort((a,b)=>b[1]-a[1])
-            .slice(0,5)
             .map(c=>`<div class="row">${c[0]} <b>${brl(c[1])}</b></div>`)
             .join("")
           }
@@ -343,7 +356,6 @@ function render(dados){
           ${
             Object.entries(d.pagamentos)
             .sort((a,b)=>b[1]-a[1])
-            .slice(0,5)
             .map(p=>`<div class="row">${p[0]} <b>${brl(p[1])}</b></div>`)
             .join("")
           }
