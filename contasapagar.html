@@ -261,19 +261,23 @@ else{
   d.outros = (d.outros || 0) + 1
 }
 
-    const raw = v.raw || {}
+let raw = v.raw
 
-    raw?.Rateio?.forEach(r=>{
-      const nome = r.PlanoDeContas || "OUTROS"
-      const val = Number(r.Valor || 0)
-      d.categorias[nome] = (d.categorias[nome] || 0) + val
-    })
+if(typeof raw === "string"){
+  try{
+    raw = JSON.parse(raw)
+  }catch{
+    raw = {}
+  }
+}
 
-    const pagamento = v.meio_pagamento || "OUTROS"
-    d.pagamentos[pagamento] =
-      (d.pagamentos[pagamento] || 0) + valor
+raw?.Rateio?.forEach(r=>{
+  const nome = r.PlanoDeContas || "OUTROS"
+  const val = Number(r.Valor || 0)
 
-  })
+  d.categorias[nome] = (d.categorias[nome] || 0) + val
+})
+
 
   return result
 }
