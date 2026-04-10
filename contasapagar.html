@@ -245,14 +245,24 @@ if(dataStr === hoje){
 
 const s = status.toLowerCase()
 
-if(s.includes("aberto") || s.includes("vencer")){
+if(
+  s.includes("aberto") ||
+  s.includes("vencer")
+){
   d.aberto++
 }
 else if(
   s.includes("pago") ||
-  s.includes("liquidado")
+  s.includes("liquidado") ||
+  s.includes("baixado")   // 🔥 ESSA LINHA É A CHAVE
 ){
   d.pago++
+}
+else if(s.includes("cancelado")){
+  d.cancelado = (d.cancelado || 0) + 1
+}
+else{
+  d.outros = (d.outros || 0) + 1
 }
 else if(s.includes("cancelado")){
   d.cancelado = (d.cancelado || 0) + 1
