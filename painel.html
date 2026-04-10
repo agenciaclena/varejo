@@ -329,37 +329,6 @@ return {
 }
 }
 
-
-
-
-
-function hojeOperacional(){
-
-  const now = new Date()
-
-  const inicio = new Date(now)
-  inicio.setHours(5,0,0,0)
-
-  const fim = new Date(inicio)
-  fim.setDate(fim.getDate()+1)
-  fim.setHours(4,0,0,0)
-
-  return { inicio, fim }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
 // ================= PROCESS =================
 function process(data, inicio, fim){
 
@@ -486,33 +455,19 @@ function getMetaEmpresa(nome){
 
   
 // ================= RENDER =================
-function render(dadosMes, dadosDia){
+function render(dados){
+
   const grid = document.getElementById("grid")
   grid.innerHTML=""
 
   Object.keys(dados).forEach(emp=>{
 
-const d = dadosMes[emp] || {}
-const dHoje = dadosDia[emp] || { total:0, almocoTotal:0, vendas:0 }
+    const d = dados[emp]
 
-
-    
     grid.innerHTML += `
       <div class="card">
         <div class="empresa">${emp}</div>
 <div class="valor">${brl(d.total)}</div>
-
-
-<div style="font-size:13px;color:#64748b;margin-top:4px">
-  Hoje: <b>${brl(dHoje.total)}</b> (${dHoje.vendas} vendas)
-</div>
-
-<div style="font-size:12px;color:#64748b">
-  🍽️ Almoço hoje: <b>${brl(dHoje.almocoTotal)}</b>
-</div>
-
-
-
 
 ${(() => {
 
@@ -552,19 +507,13 @@ const meta = getMetaEmpresa(emp)
 <div style="color:red;font-size:12px">
   ❌ ${d.cancelados} cancelados (${brl(d.valorCancelado)})
 </div>
-<button onclick="toggleFin('${emp}')"
-style="margin-top:10px;padding:6px 10px;border:none;border-radius:6px;background:#111;color:#fff;font-size:11px">
-  Ver finalizadoras
-</button>
-
-<div id="fin-${emp}" style="display:none;margin-top:8px">
-  ${
-    Object.entries(d.finais)
-    .sort((a,b)=>b[1]-a[1])
-    .map(f=>`<div class="item">${f[0]} <b>${brl(f[1])}</b></div>`)
-    .join("")
-  }
-</div>
+        ${
+          Object.entries(d.finais)
+          .sort((a,b)=>b[1]-a[1])
+          .map(f=>`<div class="item">${f[0]} <b>${brl(f[1])}</b></div>`)
+          .join("")
+        }
+      </div>
     `
   })
 
@@ -628,12 +577,9 @@ async function load(inicio, fim){
 
   console.log("📊 TOTAL CARREGADO:", all.length)
 
-const dadosMes = process(all, inicio, fim)
+  const dados = process(all, inicio, fim)
 
-const hoje = hojeOperacional()
-const dadosDia = process(all, hoje.inicio, hoje.fim)
-
-render(dadosMes, dadosDia)
+  render(dados)
 
   document.getElementById("status").innerText =
     "Atualizado " + new Date().toLocaleTimeString()
@@ -652,32 +598,8 @@ function reload(){
 }
 
 // ================= START =================
-function mesOperacional(){
+const t = turno()
 
-  const now = new Date()
-
-  const inicio = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    1,
-    5,0,0 // 🔥 respeita seu corte
-  )
-
-  const fim = new Date()
-
-  return { inicio, fim }
-}
-
-const t = mesOperacional()
-
-
-
-
-
-
-
-
-  
 function formatLocal(date){
   const pad = n => String(n).padStart(2,"0")
 
@@ -689,8 +611,8 @@ document.getElementById("fim").value = formatLocal(t.fim)
 
   
 
-const periodo = mesOperacional()
-load(periodo.inicio, periodo.fim)
+load(t.inicio,t.fim)
+
 // ================= REALTIME =================
 sb.channel("rt")
 .on("postgres_changes",{
@@ -698,8 +620,7 @@ sb.channel("rt")
   schema:"public",
   table:"cupons_importados"
 },()=>{
-const periodo = mesOperacional()
-load(periodo.inicio, periodo.fim)
+  load(t.inicio,t.fim)
 })
 .subscribe()
 function lerJSONSeguro(raw){
