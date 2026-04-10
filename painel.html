@@ -437,7 +437,17 @@ const METAS = {
 }
 
 
+function getMetaEmpresa(nome){
 
+  if(nome.includes("VILLA")) return METAS["VILLA"]
+  if(nome.includes("PADARIA")) return METAS["PADARIA"]
+  if(nome.includes("DELICIA")) return METAS["DELÍCIA"]
+  if(nome.includes("RESTAURANTE")) return METAS["MERCATTO RESTAURANTE"]
+  if(nome.includes("EMPÓRIO")) return METAS["MERCATTO EMPÓRIO"]
+
+  return null
+}
+  
 
 
 
@@ -461,7 +471,8 @@ function render(dados){
 
 ${(() => {
 
-  const meta = METAS[emp]
+const meta = getMetaEmpresa(emp)
+  
   if(!meta) return ""
 
   const pctPrata = Math.min((d.total / meta.prata) * 100, 100)
