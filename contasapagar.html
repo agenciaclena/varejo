@@ -168,16 +168,16 @@ const brl = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:
 async function carregarTudo(){
 
   let all = []
-  let lastId = 0
+  let lastDate = "1900-01-01"
   const step = 1000
 
   while(true){
 
     const { data, error } = await sb
       .from("f360_parcelas")
-.select("empresa,valor,status,vencimento,raw,meio_pagamento")
-.gt("parcela_id", lastId)
-.order("parcela_id", { ascending: true })
+      .select("empresa,valor,status,vencimento,raw,meio_pagamento,criado_em")
+      .gt("criado_em", lastDate)
+      .order("criado_em", { ascending: true })
       .limit(step)
 
     if(error){
@@ -190,7 +190,7 @@ async function carregarTudo(){
     all = all.concat(data)
 
     // 🔥 atualiza cursor
-    lastId = data[data.length - 1].id
+    lastDate = data[data.length - 1].criado_em
 
     if(data.length < step) break
   }
