@@ -5,7 +5,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 );
 
-// 🏢 EMPRESAS (IGUAL AO RECEBIMENTOS)
 const EMPRESAS = [
   "VAREJO_URL_MERCATTO",
   "VAREJO_URL_VILLA",
