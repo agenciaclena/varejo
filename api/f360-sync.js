@@ -5,13 +5,43 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 )
 
+async function getToken(){
+
+  console.log("🔐 FAZENDO LOGIN F360")
+
+  const response = await fetch(
+    "https://financas.f360.com.br/PublicLoginAPI/DoLogin",
+    {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        Token: process.env.F360_LOGIN_TOKEN
+      })
+    }
+  )
+
+  const json = await response.json()
+
+  console.log("🔐 LOGIN RESPONSE:", json)
+
+  const token = json?.Token || json?.token
+
+  if(!token){
+    throw new Error("Token F360 não retornado")
+  }
+
+  return token
+}
+
 export default async function handler(req, res){
 
   if(req.method !== "POST"){
     return res.status(405).json({ error:"Use POST" })
   }
 
-  res.setHeader("Cache-Control", "no-store, max-age=0")
+  res.setHeader("Cache-Control", "no-store")
 
   try{
 
@@ -24,55 +54,45 @@ export default async function handler(req, res){
 
     console.log("📅 PERÍODO:", inicio, "→", fim)
 
+    // 🔥 PEGA TOKEN CORRETO
+    const token = await getToken()
+
+    console.log("✅ TOKEN OK")
+
     let pagina = 1
     let totalInseridos = 0
 
     while(true){
 
-      console.log("━━━━━━━━━━━━━━━━━━━━━━")
       console.log("📄 Página:", pagina)
 
       const url = `https://financas.f360.com.br/ParcelasDeTituloPublicAPI/ListarParcelasDeTitulos?pagina=${pagina}&tipo=Despesa&inicio=${inicio}&fim=${fim}&tipoDatas=Vencimento`
 
-      console.log("🌐 URL:", url)
-
       const response = await fetch(url,{
         method:"GET",
         headers:{
-          "Authorization": `Bearer ${process.env.F360_TOKEN}`,
+          "Authorization": `Bearer ${token}`,
           "Content-Type":"application/json"
         }
       })
 
       console.log("📡 STATUS:", response.status)
 
-      const text = await response.text()
-
-      console.log("📦 RAW:", text.slice(0,500)) // mostra só início
-
-      let json
-
-      try{
-        json = JSON.parse(text)
-      }catch(e){
-        console.log("❌ JSON INVÁLIDO")
-        return res.status(500).json({ error:"JSON inválido", raw:text })
+      if(response.status === 401){
+        throw new Error("Token inválido (401)")
       }
+
+      const json = await response.json()
 
       const parcelas = json?.Result?.Parcelas || []
 
-      console.log("📊 TOTAL PARCELAS:", parcelas.length)
+      console.log("📊 PARCELAS:", parcelas.length)
 
-      if(parcelas.length === 0){
-        console.log("⚠️ SEM DADOS NESSA PÁGINA")
-        break
-      }
+      if(parcelas.length === 0) break
 
-      // 🔥 SALVA TUDO (SEM FILTRO)
       const rows = parcelas.map(p => ({
 
         parcela_id: p.ParcelaId,
-
         tipo: p.Tipo,
         numero: p.Numero,
 
@@ -95,28 +115,19 @@ export default async function handler(req, res){
         atualizado_em: new Date()
       }))
 
-      console.log("💾 SALVANDO:", rows.length)
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("f360_parcelas")
         .upsert(rows, { onConflict: "parcela_id" })
-        .select()
 
       if(error){
         console.log("❌ ERRO SUPABASE:", error)
-      }else{
-        console.log("✅ INSERIDOS:", data.length)
-        totalInseridos += data.length
+      } else {
+        totalInseridos += rows.length
       }
 
       const totalPaginas = Number(json?.Result?.QuantidadeDePaginas || 1)
 
-      console.log("📄 TOTAL PÁGINAS:", totalPaginas)
-
-      if(pagina >= totalPaginas){
-        console.log("🏁 FINALIZADO")
-        break
-      }
+      if(pagina >= totalPaginas) break
 
       pagina++
     }
@@ -128,7 +139,7 @@ export default async function handler(req, res){
 
   }catch(e){
 
-    console.log("🔥 ERRO GERAL:", e)
+    console.log("🔥 ERRO:", e.message)
 
     return res.status(500).json({
       error:"Erro no sync F360",
