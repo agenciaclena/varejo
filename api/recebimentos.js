@@ -91,7 +91,8 @@ const url = `${baseURL}?pagina=${pagina}&count=${count}&q=dataHoraFechamentoCupo
         })
       }
 
-      const json = await response.json()
+      const json = const text = await response.text()
+JSON.parse(text)
 
       const items = json.items || []
 
