@@ -90,8 +90,8 @@ const fim = hoje
 
       console.log("📊 PARCELAS:", parcelas.length)
 
-      if(parcelas.length === 0) break
-
+if(parcelas.length === 0) break
+      
       const rows = parcelas.map(p => ({
 
         parcela_id: p.ParcelaId,
