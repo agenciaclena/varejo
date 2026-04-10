@@ -47,8 +47,13 @@ let json
 try{
   json = JSON.parse(text)
 }catch(e){
+
   console.log("❌ ERRO F360:", text)
-  break
+
+  return res.status(500).json({
+    error:"F360 retornou inválido",
+    raw:text
+  })
 }
 
       
