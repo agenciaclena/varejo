@@ -64,8 +64,12 @@ try{
       if(parcelas.length === 0) break
 
       // 🔥 PROCESSA E SALVA
-      const rows = parcelas.map(p=>({
+const rows = parcelas
+  .filter(p => !p.Cancelada)
+  .map(p => ({
 
+
+    
         parcela_id: p.ParcelaId,
         tipo: p.Tipo,
         numero: p.Numero,
@@ -98,8 +102,11 @@ try{
       }
 
       // 🔥 PARA SE ACABOU
-      if(pagina >= json.Result.QuantidadeDePaginas) break
+const totalPaginas = Number(json?.Result?.QuantidadeDePaginas || 1)
 
+if(pagina >= totalPaginas) break
+
+      
       pagina++
     }
 
