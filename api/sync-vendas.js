@@ -10,8 +10,6 @@ const EMPRESAS = [
   "VAREJO_URL_PADARIA",
   "VAREJO_URL_DELICIA"
 ];
-
-// 🕒 DATA
 function hoje() {
   return new Date().toISOString().slice(0, 10);
 }
