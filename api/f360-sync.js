@@ -26,14 +26,24 @@ export default async function handler(req, res){
         {
           method:"GET",
           headers:{
-            "Authorization": process.env.F360_TOKEN,
+            "Authorization": `Bearer ${process.env.F360_TOKEN}`,
             "Content-Type":"application/json"
           }
         }
       )
 
-      const json = await response.json()
+const text = await response.text()
 
+let json
+
+try{
+  json = JSON.parse(text)
+}catch(e){
+  console.log("❌ ERRO F360:", text)
+  break
+}
+
+      
       if(!json?.Result?.Parcelas) break
 
       const parcelas = json.Result.Parcelas
@@ -60,7 +70,7 @@ export default async function handler(req, res){
         meio_pagamento: p.MeioDePagamento,
         status: p.Status,
 
-        json: p,
+        raw: p,
         atualizado_em: new Date()
       }))
 
