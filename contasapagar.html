@@ -2,28 +2,22 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>DASHBOARD DV</title>
+<title>DASHBOARD FINANCEIRO DV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
 <style>
-
 body{
   margin:0;
-  font-family:Inter;
+  font-family:Arial;
   background:#0f172a;
   color:#fff;
 }
 
 header{
   padding:20px;
-  font-weight:800;
-  font-size:18px;
+  font-weight:bold;
   background:#020617;
-  display:flex;
-  justify-content:space-between;
 }
 
 .grid{
@@ -35,51 +29,27 @@ header{
 
 .card{
   background:#020617;
-  border-radius:16px;
-  padding:18px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.4);
-}
-
-.empresa{
-  font-size:12px;
-  color:#94a3b8;
-  font-weight:700;
+  padding:15px;
+  border-radius:12px;
 }
 
 .valor{
-  font-size:28px;
-  font-weight:800;
+  font-size:26px;
   color:#22c55e;
-  margin:6px 0;
-}
-
-.small{
-  font-size:12px;
-  margin-top:4px;
+  font-weight:bold;
 }
 
 .item{
   display:flex;
   justify-content:space-between;
   font-size:12px;
-  margin-top:4px;
 }
-
-hr{
-  border:none;
-  border-top:1px solid #1e293b;
-  margin:10px 0;
-}
-
 </style>
 </head>
 
 <body>
 
-<header>
-  DASHBOARD DV
-  <div id="status"></div>
-</header>
+<header>DASHBOARD FINANCEIRO (F360)</header>
 
 <div id="grid" class="grid"></div>
 
@@ -99,80 +69,46 @@ function process(data){
 
   const result = {}
 
-  const agora = new Date()
-  const mesAtual = agora.getMonth()
-  const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1
-
   data.forEach(v=>{
 
-    const raw = lerJSONSeguro(v.raw)
-    if(!raw) return
-
-    const valor = Number(raw?.valor || 0)
-
-    const dataVenda = new Date(
-      raw?.dataHoraFechamentoCupom ||
-      raw?.data ||
-      Date.now()
-    )
-
-    const empresaBase = v.empresa_id
-
-    // 🔥 SEPARAÇÃO MERCATTO
-    let empresa = empresaBase
-
-    const caixa = Number(raw?.caixa || raw?.numeroCaixa || 0)
-
-    if(empresaBase === "VAREJO_URL_MERCATTO"){
-      if(caixa <= 5) empresa = "MERCATTO EMPÓRIO"
-      else empresa = "MERCATTO RESTAURANTE"
-    }
+    const empresa = v.empresa || "SEM EMPRESA"
+    const valor = Number(v.valor || 0)
 
     if(!result[empresa]){
       result[empresa] = {
         total:0,
-        movimentos:0,
-        mesAtual:0,
-        mesAnterior:0,
-        pagos:0,
-        abertos:0,
-        categorias:{},
-        finais:{}
+        quantidade:0,
+        aberto:0,
+        pago:0,
+        categorias:{}
       }
     }
 
     const d = result[empresa]
 
     d.total += valor
-    d.movimentos++
+    d.quantidade++
 
     // STATUS
-    if(raw?.cancelada) d.abertos++
-    else d.pagos++
+    if(v.status?.includes("Aberto")){
+      d.aberto++
+    }else{
+      d.pago++
+    }
 
-    // MÊS
-    const mes = dataVenda.getMonth()
+    // 🔥 PLANO DE CONTAS (VEM DO JSON RAW)
+    const raw = v.raw || {}
 
-    if(mes === mesAtual) d.mesAtual += valor
-    if(mes === mesAnterior) d.mesAnterior += valor
+    if(raw?.Rateio){
+      raw.Rateio.forEach(r=>{
 
-    // PLANO DE CONTAS
-    const categoria =
-      raw?.planoDeContas ||
-      raw?.categoria ||
-      "OUTROS"
+        const nome = r.PlanoDeContas || "OUTROS"
+        const val = Number(r.Valor || 0)
 
-    d.categorias[categoria] =
-      (d.categorias[categoria] || 0) + valor
-
-    // FINALIZADORAS
-    raw?.finalizacoes?.forEach(f=>{
-      const nome = f?.descricao || "OUTROS"
-      const val = Number(f.valor || 0)
-
-      d.finais[nome] =
-        (d.finais[nome] || 0) + val
-    })
+        d.categorias[nome] =
+          (d.categorias[nome] || 0) + val
+      })
+    }
 
   })
 
@@ -189,52 +125,27 @@ function render(dados){
 
     const d = dados[emp]
 
-    const crescimento =
-      d.mesAnterior > 0
-        ? ((d.mesAtual - d.mesAnterior) / d.mesAnterior) * 100
-        : 0
-
     grid.innerHTML += `
       <div class="card">
 
-        <div class="empresa">${emp}</div>
+        <div>${emp}</div>
 
         <div class="valor">${brl(d.total)}</div>
 
-        <div class="small">📊 ${d.movimentos} movimentos</div>
+        <div>${d.quantidade} lançamentos</div>
 
-        <div class="small">📅 Mês atual: ${brl(d.mesAtual)}</div>
-        <div class="small">📅 Mês anterior: ${brl(d.mesAnterior)}</div>
-
-        <div class="small" style="color:${crescimento>=0?'#22c55e':'#ef4444'}">
-          📈 ${crescimento.toFixed(1)}%
-        </div>
-
-        <div class="small">
-          ✅ ${d.pagos} | ❌ ${d.abertos}
+        <div style="font-size:12px">
+          🟡 Abertos: ${d.aberto}
+          <br>
+          🟢 Pagos: ${d.pago}
         </div>
 
         <hr>
-
-        <div class="small"><b>Plano de Contas</b></div>
 
         ${
           Object.entries(d.categorias)
           .sort((a,b)=>b[1]-a[1])
-          .slice(0,5)
           .map(c=>`<div class="item">${c[0]} <b>${brl(c[1])}</b></div>`)
-          .join("")
-        }
-
-        <hr>
-
-        <div class="small"><b>Finalizadoras</b></div>
-
-        ${
-          Object.entries(d.finais)
-          .sort((a,b)=>b[1]-a[1])
-          .slice(0,5)
-          .map(f=>`<div class="item">${f[0]} <b>${brl(f[1])}</b></div>`)
           .join("")
         }
 
@@ -242,54 +153,25 @@ function render(dados){
     `
   })
 
-  document.getElementById("status").innerText =
-    "Atualizado " + new Date().toLocaleTimeString()
 }
 
 // ================= LOAD =================
 async function load(){
 
-  let all = []
-  let from = 0
-  const step = 500
+  const { data } = await sb
+    .from("f360_parcelas")
+    .select("*")
 
-  while(true){
+  console.log("F360 DATA:", data)
 
-    const { data } = await sb
-      .from("cupons_importados")
-      .select("empresa_id,raw")
-      .range(from, from + step - 1)
-
-    if(!data || data.length === 0) break
-
-    all = all.concat(data)
-
-    if(data.length < step) break
-
-    from += step
-  }
-
-  console.log("📊 TOTAL:", all.length)
-
-  const dados = process(all)
+  const dados = process(data)
 
   render(dados)
 }
 
 // ================= START =================
 load()
-
 setInterval(load, 10000)
-
-// ================= JSON SAFE =================
-function lerJSONSeguro(raw){
-  try{
-    if(typeof raw === "object") return raw
-    return JSON.parse(raw)
-  }catch{
-    return null
-  }
-}
 
 </script>
 
