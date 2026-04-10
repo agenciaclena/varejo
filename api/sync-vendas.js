@@ -76,8 +76,14 @@ if(emp.id === "VAREJO_URL_PADARIA" && hora >= 22){
       console.log("🏢 EMPRESA:", emp.nome)
 
       try{
-        const loginResp = await fetch("https://varejo-six.vercel.app/api/login",{
-          method:"POST",
+const baseURL = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "http://localhost:3000"
+
+const loginResp = await fetch(`${baseURL}/api/login`,{
+  
+  
+  method:"POST",
           headers:{ "Content-Type":"application/json" },
           body: JSON.stringify({ empresa: emp.id })
         })
@@ -100,8 +106,8 @@ const idsProcessados = new Set()
 let totalProcessados = 0
 
 while(true){
-          const resp = await fetch("https://varejo-six.vercel.app/api/recebimentos",{
-            method:"POST",
+const resp = await fetch(`${baseURL}/api/recebimentos`,{
+  method:"POST",
             headers:{ "Content-Type":"application/json" },
 body: JSON.stringify({
   token,
