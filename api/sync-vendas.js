@@ -13,7 +13,6 @@ const EMPRESAS = [
 function hoje() {
   return new Date().toISOString().slice(0, 10);
 }
-
 export default async function handler(req, res) {
   const startGlobal = Date.now();
 
@@ -71,7 +70,7 @@ export default async function handler(req, res) {
             erro
           });
 
-          continue; // 🔥 NÃO PARA O LOOP
+          continue;
         }
 
         const raw = await apiResp.json();
