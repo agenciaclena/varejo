@@ -7,84 +7,78 @@ const supabase = createClient(
 
 export default async function handler(req, res){
 
-  // 🔥 BLOQUEIA GET (OBRIGA POST)
   if(req.method !== "POST"){
     return res.status(405).json({ error:"Use POST" })
   }
 
-  // 🔥 DESATIVA CACHE
   res.setHeader("Cache-Control", "no-store, max-age=0")
 
   try{
 
-const hoje = new Date().toLocaleDateString("en-CA", {
-  timeZone: "America/Bahia"
-})
+    const hoje = new Date().toLocaleDateString("en-CA", {
+      timeZone: "America/Bahia"
+    })
 
+    const inicio = hoje
+    const fim = hoje
 
-
-    
-const inicio = new Date(Date.now() - 7 * 86400000)
-  .toLocaleDateString("en-CA", { timeZone: "America/Bahia" })
-
-const fim = hoje
-
-
-    
+    console.log("📅 PERÍODO:", inicio, "→", fim)
 
     let pagina = 1
     let totalInseridos = 0
 
     while(true){
 
+      console.log("━━━━━━━━━━━━━━━━━━━━━━")
       console.log("📄 Página:", pagina)
 
-      const response = await fetch(
-        `https://financas.f360.com.br/ParcelasDeTituloPublicAPI/ListarParcelasDeTitulos?pagina=${pagina}&tipo=Despesa&inicio=${inicio}&fim=${fim}&tipoDatas=Vencimento`,
-        {
-          method:"GET",
-          headers:{
-            "Authorization": `Bearer ${process.env.F360_TOKEN}`,
-            "Content-Type":"application/json"
-          }
+      const url = `https://financas.f360.com.br/ParcelasDeTituloPublicAPI/ListarParcelasDeTitulos?pagina=${pagina}&tipo=Despesa&inicio=${inicio}&fim=${fim}&tipoDatas=Vencimento`
+
+      console.log("🌐 URL:", url)
+
+      const response = await fetch(url,{
+        method:"GET",
+        headers:{
+          "Authorization": `Bearer ${process.env.F360_TOKEN}`,
+          "Content-Type":"application/json"
         }
-      )
+      })
 
-const text = await response.text()
+      console.log("📡 STATUS:", response.status)
 
-let json
+      const text = await response.text()
 
-try{
-  json = JSON.parse(text)
-}catch(e){
+      console.log("📦 RAW:", text.slice(0,500)) // mostra só início
 
-  console.log("❌ ERRO F360:", text)
+      let json
 
-  return res.status(500).json({
-    error:"F360 retornou inválido",
-    raw:text
-  })
-}
+      try{
+        json = JSON.parse(text)
+      }catch(e){
+        console.log("❌ JSON INVÁLIDO")
+        return res.status(500).json({ error:"JSON inválido", raw:text })
+      }
 
-      
-      if(!json?.Result?.Parcelas) break
+      const parcelas = json?.Result?.Parcelas || []
 
-      const parcelas = json.Result.Parcelas
+      console.log("📊 TOTAL PARCELAS:", parcelas.length)
 
-      if(parcelas.length === 0) break
+      if(parcelas.length === 0){
+        console.log("⚠️ SEM DADOS NESSA PÁGINA")
+        break
+      }
 
-      // 🔥 PROCESSA E SALVA
-const rows = parcelas
-  .filter(p => !p.Cancelada)
-  .map(p => ({
+      // 🔥 SALVA TUDO (SEM FILTRO)
+      const rows = parcelas.map(p => ({
 
-
-    
         parcela_id: p.ParcelaId,
+
         tipo: p.Tipo,
         numero: p.Numero,
+
         vencimento: p.Vencimento,
         liquidacao: p.Liquidacao,
+
         valor: p.ValorBruto,
 
         empresa: p?.DadosDoTitulo?.Empresa?.Nome || "",
@@ -101,24 +95,29 @@ const rows = parcelas
         atualizado_em: new Date()
       }))
 
-const { data, error } = await supabase
-  .from("f360_parcelas")
-  .upsert(rows, { onConflict: "parcela_id" })
-  .select()
+      console.log("💾 SALVANDO:", rows.length)
 
-if(error){
-  console.log("❌ ERRO SUPABASE:", error)
-}else{
-  console.log("✅ UPSERT:", data.length)
-  totalInseridos += data.length
-}
+      const { data, error } = await supabase
+        .from("f360_parcelas")
+        .upsert(rows, { onConflict: "parcela_id" })
+        .select()
 
-      // 🔥 PARA SE ACABOU
-const totalPaginas = Number(json?.Result?.QuantidadeDePaginas || 1)
+      if(error){
+        console.log("❌ ERRO SUPABASE:", error)
+      }else{
+        console.log("✅ INSERIDOS:", data.length)
+        totalInseridos += data.length
+      }
 
-if(pagina >= totalPaginas) break
+      const totalPaginas = Number(json?.Result?.QuantidadeDePaginas || 1)
 
-      
+      console.log("📄 TOTAL PÁGINAS:", totalPaginas)
+
+      if(pagina >= totalPaginas){
+        console.log("🏁 FINALIZADO")
+        break
+      }
+
       pagina++
     }
 
@@ -129,11 +128,11 @@ if(pagina >= totalPaginas) break
 
   }catch(e){
 
+    console.log("🔥 ERRO GERAL:", e)
+
     return res.status(500).json({
       error:"Erro no sync F360",
       details:e.message
     })
-
   }
-
 }
