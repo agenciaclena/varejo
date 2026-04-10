@@ -1,177 +1,197 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE
-);
-const EMPRESAS = [
-  "VAREJO_URL_MERCATTO",
-  "VAREJO_URL_VILLA",
-  "VAREJO_URL_PADARIA",
-  "VAREJO_URL_DELICIA"
-];
-function hoje() {
-  return new Date().toISOString().slice(0, 10);
-}
-export default async function handler(req, res) {
-  const startGlobal = Date.now();
+export default async function handler(req, res){
 
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("🚀 SYNC GLOBAL VENDAS");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  const startGlobal = Date.now()
 
-  try {
+  console.log("🚀 SYNC GLOBAL CUPONS START")
 
-    let totalGlobal = 0;
-    let resultados = [];
+  try{
 
-    // 🔁 LOOP EMPRESAS
-    for (const empresa of EMPRESAS) {
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE
+    )
+    const empresas = [
+      { id:"VAREJO_URL_DELICIA", nome:"DELÍCIA" },
+      { id:"VAREJO_URL_VILLA", nome:"VILLA" },
+      { id:"VAREJO_URL_PADARIA", nome:"PADARIA" },
+      { id:"VAREJO_URL_MERCATTO", nome:"MERCATTO" }
+    ]
 
-      const startEmpresa = Date.now();
+    let totalNovos = 0
+    let totalExistentes = 0
+    let totalPagamentos = 0
+    let totalErros = 0
 
-      console.log(`\n🏢 PROCESSANDO: ${empresa}`);
+    for(const emp of empresas){
 
-      try {
+      const startEmpresa = Date.now()
 
-        // 🔎 BUSCAR ÚLTIMA DATA
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━")
+      console.log("🏢 EMPRESA:", emp.nome)
+
+      try{
+
+        // ================= PEGAR ÚLTIMA DATA =================
         const { data: ultima } = await supabase
-          .from("vendas_realtime")
-          .select("data_fechamento")
-          .eq("empresa", empresa)
-          .order("data_fechamento", { ascending: false })
+          .from("cupons_importados")
+          .select("data")
+          .eq("empresa_id", emp.id)
+          .order("data", { ascending:false })
           .limit(1)
-          .maybeSingle();
 
-        const ultimaData = ultima?.data_fechamento || hoje();
+        const ultimaData = ultima?.[0]?.data
 
-        console.log("📅 Última data:", ultimaData);
+        const dataInicio = ultimaData
+          ? new Date(new Date(ultimaData).getTime() - 86400000).toISOString().slice(0,10)
+          : new Date(Date.now() - 86400000 * 3).toISOString().slice(0,10)
 
-        // 🌐 CHAMAR SUA API (REUTILIZA RECEBIMENTOS)
-        const apiResp = await fetch(process.env.API_URL_RECEBIMENTOS, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+        const dataFim = new Date().toISOString().slice(0,10)
+
+        console.log("📅 PERIODO:", dataInicio, "→", dataFim)
+
+        // ================= LOGIN =================
+        const loginResp = await fetch("https://varejo-six.vercel.app/api/login",{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ empresa: emp.id })
+        })
+
+        const loginData = await loginResp.json()
+        const token = loginData.accessToken || loginData.token
+
+        if(!token){
+          console.log("❌ SEM TOKEN")
+          totalErros++
+          continue
+        }
+
+        console.log("✅ TOKEN OK")
+
+        // ================= RECEBIMENTOS =================
+        const resp = await fetch("https://varejo-six.vercel.app/api/recebimentos",{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
           body: JSON.stringify({
-            empresa,
-            dataInicio: ultimaData,
-            dataFim: hoje()
+            token,
+            empresa: emp.id,
+            dataInicio,
+            dataFim
           })
-        });
+        })
 
-        if (!apiResp.ok) {
-          const erro = await apiResp.text();
-          console.log(`❌ ERRO API (${empresa}):`, erro);
+        const json = await resp.json()
+        const cupons = json.items || []
 
-          resultados.push({
-            empresa,
-            ok: false,
-            erro
-          });
+        console.log("📊 TOTAL RECEBIDO:", cupons.length)
 
-          continue;
+        if(!cupons.length){
+          console.log("⚠️ NADA NOVO")
+          continue
         }
 
-        const raw = await apiResp.json();
-        const vendas = raw.items || [];
+        // ================= EXISTENTES =================
+        const uniqueIds = cupons.map(c => emp.id + "_" + (c.id || c.vendaId))
 
-        console.log(`📦 ${empresa} → ${vendas.length} vendas`);
+        const { data: existentes } = await supabase
+          .from("cupons_importados")
+          .select("unique_id")
+          .in("unique_id", uniqueIds)
 
-        if (!vendas.length) {
-          resultados.push({
-            empresa,
-            ok: true,
-            total: 0
-          });
-          continue;
+        const existentesSet = new Set((existentes || []).map(e => e.unique_id))
+
+        console.log("♻️ JÁ EXISTIAM:", existentesSet.size)
+
+        const novos = []
+        const pagamentos = []
+
+        for(const cupom of cupons){
+
+          const venda_id = cupom.id || cupom.vendaId
+          if(!venda_id) continue
+
+          const unique_id = emp.id + "_" + venda_id
+
+          if(existentesSet.has(unique_id)){
+            totalExistentes++
+            continue
+          }
+
+          const valor_total = Number(cupom.valorTotal || 0)
+
+          novos.push({
+            unique_id,
+            empresa: emp.nome,
+            empresa_id: emp.id,
+            venda_id,
+            data: cupom.data,
+            valor_total,
+            valor_liquido: valor_total,
+            finalizadora_principal: cupom.finalizacoes?.[0]?.descricao || null,
+            cancelado: !!cupom.cancelada,
+            raw: cupom
+          })
+
+          if(Array.isArray(cupom.finalizacoes)){
+            cupom.finalizacoes.forEach(f=>{
+              pagamentos.push({
+                cupom_unique_id: unique_id,
+                finalizadora_id: String(f.finalizadoraId),
+                finalizadora_nome: f.descricao,
+                valor: Number(f.valor || 0)
+              })
+            })
+          }
+
         }
 
-        // 🔄 TRANSFORMAR
-        const inserts = vendas.map(v => ({
-          empresa,
-          loja_id: v.lojaId,
-          venda_id: v.id,
-          data: v.dataVenda,
-          data_fechamento: v.dataHoraFechamentoCupom,
-          valor: v.valor,
-          desconto: v.desconto,
-          acrescimo: v.acrescimo,
-          finalizadora_ids: v.finalizacoes?.map(f => f.finalizadoraId) || [],
-          finalizadora_principal: v.finalizacoes?.[0]?.finalizadoraId || null,
-          cancelada: v.cancelada,
-          cliente_id: v.clienteId,
-          funcionario_id: v.funcionarioId,
-          json_completo: v
-        }));
+        console.log("🆕 NOVOS:", novos.length)
 
-        // 💾 UPSERT
-        const { error } = await supabase
-          .from("vendas_realtime")
-          .upsert(inserts, {
-            onConflict: "venda_id"
-          });
+        if(novos.length){
 
-        if (error) {
-          console.log(`❌ ERRO SUPABASE (${empresa}):`, error.message);
+          const { error } = await supabase
+            .from("cupons_importados")
+            .insert(novos)
 
-          resultados.push({
-            empresa,
-            ok: false,
-            erro: error.message
-          });
+          if(error){
+            console.log("❌ ERRO INSERT:", error.message)
+            totalErros++
+            continue
+          }
 
-          continue;
+          console.log("✅ INSERIDOS:", novos.length)
+          totalNovos += novos.length
         }
 
-        const tempo = ((Date.now() - startEmpresa) / 1000).toFixed(2);
+        if(pagamentos.length){
+          await supabase.from("cupons_pagamentos").insert(pagamentos)
+          totalPagamentos += pagamentos.length
+        }
 
-        console.log(`✅ ${empresa} FINALIZADO (${inserts.length}) em ${tempo}s`);
+        console.log("⏱️ TEMPO:", ((Date.now()-startEmpresa)/1000).toFixed(2)+"s")
 
-        totalGlobal += inserts.length;
-
-        resultados.push({
-          empresa,
-          ok: true,
-          total: inserts.length,
-          tempo
-        });
-
-      } catch (errEmpresa) {
-
-        console.log(`💥 ERRO GERAL (${empresa}):`, errEmpresa.message);
-
-        resultados.push({
-          empresa,
-          ok: false,
-          erro: errEmpresa.message
-        });
-
+      }catch(e){
+        console.log("💥 ERRO:", emp.nome, e.message)
+        totalErros++
       }
+
     }
 
-    const tempoTotal = ((Date.now() - startGlobal) / 1000).toFixed(2);
-
-    console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("🏁 SYNC GLOBAL FINALIZADO");
-    console.log(`📊 TOTAL: ${totalGlobal}`);
-    console.log(`⏱ TEMPO: ${tempoTotal}s`);
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━")
+    console.log("🔥 RESUMO FINAL")
+    console.log("🆕 NOVOS:", totalNovos)
+    console.log("♻️ IGNORADOS:", totalExistentes)
+    console.log("💳 PAGAMENTOS:", totalPagamentos)
+    console.log("❌ ERROS:", totalErros)
 
     return res.json({
-      ok: true,
-      totalGlobal,
-      tempoTotal,
-      empresas: resultados
-    });
+      ok:true,
+      novos: totalNovos,
+      existentes: totalExistentes
+    })
 
-  } catch (e) {
-
-    console.log("💥 ERRO GLOBAL:", e);
-
-    return res.status(500).json({
-      ok: false,
-      error: e.message
-    });
+  }catch(e){
+    return res.status(500).json({ error:e.message })
   }
 }
