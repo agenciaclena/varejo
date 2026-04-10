@@ -17,8 +17,13 @@ export default async function handler(req, res){
 
   try{
 
-    const hoje = new Date().toISOString().slice(0,10)
+const hoje = new Date().toLocaleDateString("en-CA", {
+  timeZone: "America/Bahia"
+})
 
+
+
+    
 const inicio = hoje
 const fim = hoje
 
