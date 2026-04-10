@@ -4,9 +4,13 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
+
 export default async function handler(req, res){
 
   try{
+
+    
+    
     const { empresa, empresa_nome, dataInicio, dataFim } = req.body
 
     if(!empresa){
@@ -19,7 +23,7 @@ export default async function handler(req, res){
     const fim = dataFim || hoje
 
     // ================= LOGIN =================
-    const loginResp = await fetch(process.env.API_URL + "/login",{
+    const loginResp = await fetch(`${req.headers.origin}/api/login`,{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ empresa })
@@ -34,7 +38,7 @@ export default async function handler(req, res){
     }
 
     // ================= BUSCAR CUPONS =================
-    const resp = await fetch(process.env.API_URL + "/recebimentos",{
+    const resp = await fetch(`${req.headers.origin}/api/recebimentos`,{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({
