@@ -92,30 +92,31 @@ const fim = hoje
 
 if(parcelas.length === 0) break
       
-      const rows = parcelas.map(p => ({
+     const rows = parcelas.map(p => ({
 
-        parcela_id: p.ParcelaId,
-        tipo: p.Tipo,
-        numero: p.Numero,
+  parcela_id: p.ParcelaId,
+  tipo: p.Tipo,
+  numero: p.Numero,
 
-        vencimento: p.Vencimento,
-        liquidacao: p.Liquidacao,
+  vencimento: p.Vencimento && p.Vencimento !== "" ? p.Vencimento : null,
+  liquidacao: p.Liquidacao && p.Liquidacao !== "" ? p.Liquidacao : null,
 
-        valor: p.ValorBruto,
+  valor: p.ValorBruto,
 
-        empresa: p?.DadosDoTitulo?.Empresa?.Nome || "",
-        fornecedor: p?.DadosDoTitulo?.ClienteFornecedor?.Nome || "",
+  empresa: p?.DadosDoTitulo?.Empresa?.Nome || "",
+  fornecedor: p?.DadosDoTitulo?.ClienteFornecedor?.Nome || "",
 
-        categoria: p?.Rateio?.[0]?.PlanoDeContas || "",
-        centro_custo: p?.Rateio?.[0]?.CentroDeCusto || "",
+  categoria: p?.Rateio?.[0]?.PlanoDeContas || "",
+  centro_custo: p?.Rateio?.[0]?.CentroDeCusto || "",
 
-        conta: p.Conta,
-        meio_pagamento: p.MeioDePagamento,
-        status: p.Status,
+  conta: p.Conta,
+  meio_pagamento: p.MeioDePagamento,
+  status: p.Status,
 
-        raw: p,
-        atualizado_em: new Date()
-      }))
+  raw: p,
+  atualizado_em: new Date()
+
+}))
 
       const { error } = await supabase
         .from("f360_parcelas")
