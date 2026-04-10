@@ -243,9 +243,13 @@ if(dataStr === hoje){
     if(mes === mesAtual) d.mes += valor
     if(mes === mesAnterior) d.mesAnterior += valor
 
-const s = status.toLowerCase()
+const s = (status || "").toLowerCase()
 
-if(
+// 🔥 PRIORIDADE: CANCELADO PRIMEIRO
+if(v.raw?.Cancelada === true){
+  d.cancelado = (d.cancelado || 0) + 1
+}
+else if(
   s.includes("aberto") ||
   s.includes("vencer")
 ){
@@ -254,18 +258,9 @@ if(
 else if(
   s.includes("pago") ||
   s.includes("liquidado") ||
-  s.includes("baixado")   // 🔥 ESSA LINHA É A CHAVE
+  s.includes("baixado")
 ){
   d.pago++
-}
-else if(s.includes("cancelado")){
-  d.cancelado = (d.cancelado || 0) + 1
-}
-else{
-  d.outros = (d.outros || 0) + 1
-}
-else if(s.includes("cancelado")){
-  d.cancelado = (d.cancelado || 0) + 1
 }
 else{
   d.outros = (d.outros || 0) + 1
