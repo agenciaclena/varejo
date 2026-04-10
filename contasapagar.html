@@ -168,7 +168,7 @@ const brl = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:
 async function carregarTudo(){
 
   let all = []
-  let from = 0
+  let lastId = 0
   const step = 1000
 
   while(true){
@@ -176,7 +176,9 @@ async function carregarTudo(){
     const { data, error } = await sb
       .from("f360_parcelas")
       .select("*")
-      .range(from, from + step - 1)
+      .gt("id", lastId) // 🔥 PAGINAÇÃO SEGURA
+      .order("id", { ascending: true })
+      .limit(step)
 
     if(error){
       console.log("ERRO:", error)
@@ -187,14 +189,14 @@ async function carregarTudo(){
 
     all = all.concat(data)
 
-    if(data.length < step) break
+    // 🔥 atualiza cursor
+    lastId = data[data.length - 1].id
 
-    from += step
+    if(data.length < step) break
   }
 
   return all
 }
-
 // ================= PROCESS =================
 function process(data){
 
