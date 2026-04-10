@@ -2,54 +2,90 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>DASHBOARD DV</title>
+<title>DASHBOARD FINANCEIRO DV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
 <style>
+
 body{
   margin:0;
-  font-family:Arial;
-  background:#0f172a;
-  color:#fff;
+  font-family:Inter;
+  background:#f8fafc;
 }
 
 header{
+  background:#1e3a8a;
+  color:#fff;
   padding:20px;
-  font-weight:bold;
-  background:#020617;
+  font-size:20px;
+  font-weight:800;
 }
 
 .grid{
   display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
-  gap:15px;
-  padding:15px;
+  grid-template-columns: repeat(auto-fit,minmax(360px,1fr));
+  gap:20px;
+  padding:20px;
 }
 
 .card{
-  background:#020617;
-  padding:15px;
-  border-radius:12px;
+  background:#fff;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.empresa{
+  font-size:14px;
+  font-weight:800;
+  color:#64748b;
 }
 
 .valor{
-  font-size:26px;
-  color:#22c55e;
-  font-weight:bold;
+  font-size:32px;
+  font-weight:800;
+  color:#16a34a;
 }
 
-.item{
+.row{
   display:flex;
   justify-content:space-between;
-  font-size:12px;
+  font-size:13px;
+  margin-top:4px;
 }
+
+.section{
+  margin-top:12px;
+}
+
+hr{
+  border:none;
+  border-top:1px solid #eee;
+  margin:10px 0;
+}
+
+.badge{
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:700;
+}
+
+.green{ background:#dcfce7; color:#166534 }
+.red{ background:#fee2e2; color:#991b1b }
+.blue{ background:#dbeafe; color:#1e40af }
+
 </style>
 </head>
 
 <body>
 
-<header>DASHBOARD (F360)</header>
+<header>
+DASHBOARD FINANCEIRO DV
+</header>
 
 <div id="grid" class="grid"></div>
 
@@ -62,53 +98,86 @@ const sb = window.supabase.createClient(
 )
 
 // ================= FORMAT =================
-const brl = v => Number(v || 0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
+const brl = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
 
 // ================= PROCESS =================
 function process(data){
 
   const result = {}
 
+  const hoje = new Date().toLocaleDateString("en-CA",{timeZone:"America/Bahia"})
+  const mesAtual = new Date().getMonth()
+  const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1
+
   data.forEach(v=>{
 
     const empresa = v.empresa || "SEM EMPRESA"
     const valor = Number(v.valor || 0)
+    const status = v.status || ""
+    const dataVenc = v.vencimento
+
+    const dataObj = new Date(dataVenc)
+    const dataStr = dataObj.toISOString().slice(0,10)
 
     if(!result[empresa]){
       result[empresa] = {
-        total:0,
-        quantidade:0,
+        hoje:0,
+        hojeQtd:0,
+
+        mes:0,
+        mesAnterior:0,
+
         aberto:0,
         pago:0,
-        categorias:{}
+
+        categorias:{},
+        pagamentos:{}
       }
     }
 
     const d = result[empresa]
 
-    d.total += valor
-    d.quantidade++
+    // ================= HOJE =================
+    if(dataStr === hoje){
+      d.hoje += valor
+      d.hojeQtd++
+    }
 
-    // STATUS
-    if(v.status?.includes("Aberto")){
+    // ================= MÊS =================
+    const mes = dataObj.getMonth()
+
+    if(mes === mesAtual){
+      d.mes += valor
+    }
+
+    if(mes === mesAnterior){
+      d.mesAnterior += valor
+    }
+
+    // ================= STATUS =================
+    if(status.includes("Aberto")){
       d.aberto++
     }else{
       d.pago++
     }
 
-    // 🔥 PLANO DE CONTAS (VEM DO JSON RAW)
+    // ================= RATEIO =================
     const raw = v.raw || {}
 
-    if(raw?.Rateio){
-      raw.Rateio.forEach(r=>{
+    raw?.Rateio?.forEach(r=>{
 
-        const nome = r.PlanoDeContas || "OUTROS"
-        const val = Number(r.Valor || 0)
+      const nome = r.PlanoDeContas || "OUTROS"
+      const val = Number(r.Valor || 0)
 
-        d.categorias[nome] =
-          (d.categorias[nome] || 0) + val
-      })
-    }
+      d.categorias[nome] =
+        (d.categorias[nome] || 0) + val
+    })
+
+    // ================= PAGAMENTO =================
+    const pagamento = v.meio_pagamento || "OUTROS"
+
+    d.pagamentos[pagamento] =
+      (d.pagamentos[pagamento] || 0) + valor
 
   })
 
@@ -119,35 +188,72 @@ function process(data){
 function render(dados){
 
   const grid = document.getElementById("grid")
-  grid.innerHTML = ""
+  grid.innerHTML=""
 
   Object.keys(dados).forEach(emp=>{
 
     const d = dados[emp]
 
+    const crescimento =
+      d.mesAnterior > 0
+      ? ((d.mes - d.mesAnterior)/d.mesAnterior)*100
+      : 0
+
     grid.innerHTML += `
       <div class="card">
 
-        <div>${emp}</div>
+        <div class="empresa">${emp}</div>
 
-        <div class="valor">${brl(d.total)}</div>
+        <div class="valor">${brl(d.mes)}</div>
 
-        <div>${d.quantidade} lançamentos</div>
+        <div class="section">
+          <span class="badge blue">HOJE</span>
+          <div class="row">Total: <b>${brl(d.hoje)}</b></div>
+          <div class="row">Qtd: ${d.hojeQtd}</div>
+        </div>
 
-        <div style="font-size:12px">
-          🟡 Abertos: ${d.aberto}
-          <br>
-          🟢 Pagos: ${d.pago}
+        <div class="section">
+          <span class="badge green">MÊS</span>
+          <div class="row">Atual: ${brl(d.mes)}</div>
+          <div class="row">Anterior: ${brl(d.mesAnterior)}</div>
+          <div class="row">Crescimento:
+            <b style="color:${crescimento>=0?'green':'red'}">
+              ${crescimento.toFixed(1)}%
+            </b>
+          </div>
+        </div>
+
+        <div class="section">
+          <span class="badge red">STATUS</span>
+          <div class="row">Abertos: ${d.aberto}</div>
+          <div class="row">Pagos: ${d.pago}</div>
         </div>
 
         <hr>
 
-        ${
-          Object.entries(d.categorias)
-          .sort((a,b)=>b[1]-a[1])
-          .map(c=>`<div class="item">${c[0]} <b>${brl(c[1])}</b></div>`)
-          .join("")
-        }
+        <div class="section">
+          <b>Plano de Contas</b>
+          ${
+            Object.entries(d.categorias)
+            .sort((a,b)=>b[1]-a[1])
+            .slice(0,5)
+            .map(c=>`<div class="row">${c[0]} <b>${brl(c[1])}</b></div>`)
+            .join("")
+          }
+        </div>
+
+        <hr>
+
+        <div class="section">
+          <b>Formas de Pagamento</b>
+          ${
+            Object.entries(d.pagamentos)
+            .sort((a,b)=>b[1]-a[1])
+            .slice(0,5)
+            .map(p=>`<div class="row">${p[0]} <b>${brl(p[1])}</b></div>`)
+            .join("")
+          }
+        </div>
 
       </div>
     `
@@ -161,8 +267,6 @@ async function load(){
   const { data } = await sb
     .from("f360_parcelas")
     .select("*")
-
-  console.log("F360 DATA:", data)
 
   const dados = process(data)
 
