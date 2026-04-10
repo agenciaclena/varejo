@@ -290,7 +290,13 @@ const p = parse(v)
 if(!p || !p.data) return
 
 const d = new Date(p.data)
+const hora = d.getHours()
 
+const isAlmoco = hora >= 10 && hora < 15
+
+
+
+    
 // NÃO mexe no horário aqui
 if(d < inicio || d > fim) return
 
@@ -311,11 +317,15 @@ if(empBase === "VAREJO_URL_MERCATTO"){
 }
     if(!result[emp]){
       result[emp]={
-        total:0,
-        vendas:0,
-        cancelados:0,
-        valorCancelado:0,
-        finais:{}
+total:0,
+vendas:0,
+cancelados:0,
+valorCancelado:0,
+finais:{},
+
+// 🔥 NOVO
+almocoTotal:0,
+almocoVendas:0
       }
     }
 
@@ -345,7 +355,10 @@ const nome = MAPA[empBase]?.[idf] || "OUTROS"
     
     result[emp].total += totalCupom
     result[emp].vendas++
-
+if(isAlmoco){
+  result[emp].almocoTotal += totalCupom
+  result[emp].almocoVendas++
+}
   })
 
   return result
@@ -365,6 +378,11 @@ function render(dados){
         <div class="empresa">${emp}</div>
         <div class="valor">${brl(d.total)}</div>
 <div>${d.vendas} vendas</div>
+
+<div style="margin-top:6px;padding:6px;background:#f1f5f9;border-radius:6px;font-size:12px">
+  🍽️ Almoço: <b>${brl(d.almocoTotal)}</b> (${d.almocoVendas} vendas)
+</div>
+
 <div style="color:red;font-size:12px">
   ❌ ${d.cancelados} cancelados (${brl(d.valorCancelado)})
 </div>
