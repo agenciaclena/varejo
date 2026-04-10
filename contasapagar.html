@@ -201,7 +201,15 @@ function process(data){
   const result = {}
 
   const hoje = new Date().toLocaleDateString("en-CA",{timeZone:"America/Bahia"})
-  const mesAtual = new Date().getMonth()
+const agora = new Date(
+  new Date().toLocaleString("en-US",{timeZone:"America/Bahia"})
+)
+
+const mesAtual = agora.getMonth()
+  
+  
+  
+  
   const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1
 
   data.forEach(v=>{
