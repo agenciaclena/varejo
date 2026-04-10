@@ -455,15 +455,14 @@ function getMetaEmpresa(nome){
 
   
 // ================= RENDER =================
-function render(dados){
-
+function render(dados, dadosMes){
   const grid = document.getElementById("grid")
   grid.innerHTML=""
 
   Object.keys(dados).forEach(emp=>{
 
-    const d = dados[emp]
-
+const d = dados[emp]
+const dMes = dadosMes[emp] || { total:0 }
     grid.innerHTML += `
       <div class="card">
         <div class="empresa">${emp}</div>
@@ -475,8 +474,8 @@ const meta = getMetaEmpresa(emp)
   
   if(!meta) return ""
 
-  const pctPrata = Math.min((d.total / meta.prata) * 100, 100)
-  const pctOuro = Math.min((d.total / meta.ouro) * 100, 100)
+const pctPrata = Math.min((dMes.total / meta.prata) * 100, 100)
+const pctOuro = Math.min((dMes.total / meta.ouro) * 100, 100)
 
   return `
     <div class="metas">
@@ -541,6 +540,34 @@ function renderChart(d){
   })
 }
 
+
+
+
+function mesOperacional(){
+
+  const now = new Date()
+
+  const inicio = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1,
+    5,0,0
+  )
+
+  const fim = new Date()
+
+  return { inicio, fim }
+}
+
+
+
+
+
+
+
+
+
+  
 // ================= LOAD =================
 async function load(inicio, fim){
 
@@ -577,9 +604,15 @@ async function load(inicio, fim){
 
   console.log("📊 TOTAL CARREGADO:", all.length)
 
-  const dados = process(all, inicio, fim)
+// 🔵 dados do filtro (mantém igual)
+const dados = process(all, inicio, fim)
 
-  render(dados)
+// 🟡 dados do mês (NOVO)
+const mes = mesOperacional()
+const dadosMes = process(all, mes.inicio, mes.fim)
+
+// envia os dois
+render(dados, dadosMes)
 
   document.getElementById("status").innerText =
     "Atualizado " + new Date().toLocaleTimeString()
