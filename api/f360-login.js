@@ -4,8 +4,6 @@ let tokenExpira = 0
 export default async function handler(req, res){
 
   try{
-
-    // 🔥 TOKEN EM CACHE (evita custo)
     if(tokenCache && Date.now() < tokenExpira){
       return res.json({ token: tokenCache })
     }
