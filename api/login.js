@@ -5,8 +5,6 @@ export default async function handler(req, res) {
 
   try {
     const { empresa } = req.body;
-
-    // 🔹 URLs específicas por empresa
     const urls = {
       VAREJO_URL_MERCATTO: "https://mercatto.varejofacil.com/api/auth",         // Mercatto Delícia
       VAREJO_URL_VILLA: "https://deliciagourmet.varejofacil.com/api/auth",      // Villa Gourmet
