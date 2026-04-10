@@ -598,8 +598,32 @@ function reload(){
 }
 
 // ================= START =================
-const t = turno()
+function mesOperacional(){
 
+  const now = new Date()
+
+  const inicio = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1,
+    5,0,0 // 🔥 respeita seu corte
+  )
+
+  const fim = new Date()
+
+  return { inicio, fim }
+}
+
+const t = mesOperacional()
+
+
+
+
+
+
+
+
+  
 function formatLocal(date){
   const pad = n => String(n).padStart(2,"0")
 
@@ -611,8 +635,8 @@ document.getElementById("fim").value = formatLocal(t.fim)
 
   
 
-load(t.inicio,t.fim)
-
+const periodo = mesOperacional()
+load(periodo.inicio, periodo.fim)
 // ================= REALTIME =================
 sb.channel("rt")
 .on("postgres_changes",{
@@ -620,7 +644,8 @@ sb.channel("rt")
   schema:"public",
   table:"cupons_importados"
 },()=>{
-  load(t.inicio,t.fim)
+const periodo = mesOperacional()
+load(periodo.inicio, periodo.fim)
 })
 .subscribe()
 function lerJSONSeguro(raw){
