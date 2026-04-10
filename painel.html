@@ -502,33 +502,6 @@ function lerJSONSeguro(raw){
     return null
   }
 }
-
-
-// 🚀 AUTO SYNC VENDAS (TEMPO REAL)
-setInterval(async () => {
-  try {
-    const empresa = document.getElementById("empresa").value;
-
-    await fetch("/api/sync-vendas", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ empresa })
-    });
-
-    console.log("🔥 SYNC EXECUTADO:", empresa);
-
-  } catch (e) {
-    console.error("❌ ERRO SYNC:", e);
-  }
-}, 15000);
-  
-</script>
-
-
-
-  
 </script>
 </body>
 </html>
