@@ -1,11 +1,5 @@
 export default async function handler(req, res) {
 
-  // 🔥 BLOQUEIO DE ORIGEM (PARA PARAR CUSTO)
-  if (req.headers["x-source"] !== "painel") {
-    console.log("⛔ BLOQUEADO CHAMADA EXTERNA")
-    return res.status(403).json({ error: "Acesso não autorizado" })
-  }
-
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
   console.log("🚀 RECEBIMENTOS START")
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
