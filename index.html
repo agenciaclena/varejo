@@ -455,6 +455,33 @@ setInterval(async () => {
     console.error("❌ ERRO SYNC:", e);
   }
 }, 15000);
+
+
+
+
+
+
+// 🚀 AUTO SYNC F360 (DESPESAS)
+setInterval(async () => {
+  try {
+
+    await fetch("/api/f360-sync", {
+      method: "POST"
+    });
+
+    console.log("💰 F360 SYNC EXECUTADO");
+
+  } catch (e) {
+
+    console.error("❌ ERRO F360:", e);
+
+  }
+}, 30000); // a cada 30s
+
+
+
+
+
   
 </script>
 </body>
