@@ -102,8 +102,29 @@ const loginResp = await fetch(`${baseURL}/api/login`,{
 const count = emp.id === "VAREJO_URL_PADARIA" ? 200 : 500
 
 let pagina = 1
-const idsProcessados = new Set()
-let totalProcessados = 0
+const { data: existente } = await supabase
+  .from("cupons_importados")
+  .select("unique_id")
+  .in("unique_id", items.map(v => `${emp.id}_${v.id}`))
+  
+        
+ const existentesSet = new Set(existente.map(e => e.unique_id))
+
+for(const v of items){
+
+  const unique_id = `${emp.id}_${v.id}`
+
+  if(existentesSet.has(unique_id)){
+    continue
+  }
+
+  // continua normal
+}
+
+        
+        
+        
+        let totalProcessados = 0
 
 while(true){
 const resp = await fetch(`${baseURL}/api/recebimentos`,{
