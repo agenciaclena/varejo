@@ -176,8 +176,8 @@ async function carregarTudo(){
     const { data, error } = await sb
       .from("f360_parcelas")
 .select("empresa,valor,status,vencimento,raw,meio_pagamento")
-      .gt("id", lastId) // 🔥 PAGINAÇÃO SEGURA
-      .order("id", { ascending: true })
+.gt("parcela_id", lastId)
+.order("parcela_id", { ascending: true })
       .limit(step)
 
     if(error){
