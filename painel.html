@@ -342,28 +342,46 @@ const valor = valorBruto - troco
 function render(dados){
 
   const grid = document.getElementById("grid")
-  grid.innerHTML=""
 
   Object.keys(dados).forEach(emp=>{
 
     const d = dados[emp]
 
-    grid.innerHTML += `
-      <div class="card">
+    let card = document.getElementById("card_"+emp)
+
+    // CRIA CARD SE NÃO EXISTIR
+    if(!card){
+      card = document.createElement("div")
+      card.className = "card"
+      card.id = "card_"+emp
+
+      card.innerHTML = `
         <div class="empresa">${emp}</div>
-        <div class="valor">${brl(d.total)}</div>
-<div>${d.vendas} vendas</div>
-<div style="color:red;font-size:12px">
-  ❌ ${d.cancelados} cancelados (${brl(d.valorCancelado)})
-</div>
-        ${
-          Object.entries(d.finais)
-          .sort((a,b)=>b[1]-a[1])
-          .map(f=>`<div class="item">${f[0]} <b>${brl(f[1])}</b></div>`)
-          .join("")
-        }
-      </div>
-    `
+        <div class="valor" id="valor_${emp}">0</div>
+        <div id="vendas_${emp}"></div>
+        <div id="cancelados_${emp}"></div>
+        <div id="finais_${emp}"></div>
+      `
+
+      grid.appendChild(card)
+    }
+
+    // ATUALIZA SOMENTE OS VALORES (SEM RECRIAR)
+    document.getElementById("valor_"+emp).innerText = brl(d.total)
+
+    document.getElementById("vendas_"+emp).innerText =
+      d.vendas + " vendas"
+
+    document.getElementById("cancelados_"+emp).innerText =
+      "❌ " + d.cancelados + " cancelados (" + brl(d.valorCancelado) + ")"
+
+    const finaisDiv = document.getElementById("finais_"+emp)
+
+    finaisDiv.innerHTML =
+      Object.entries(d.finais)
+      .sort((a,b)=>b[1]-a[1])
+      .map(f=>"<div class='item'>"+f[0]+" <b>"+brl(f[1])+"</b></div>")
+      .join("")
   })
 
   renderChart(dados)
@@ -389,15 +407,19 @@ function renderChart(d){
     }
   })
 }
-
+let filtroAtual = null
 // ================= LOAD =================
 async function load(inicio, fim){
+
+  if(carregando) return
+  carregando = true
+
+  filtroAtual = { inicio, fim }
 
   let all = []
   let from = 0
   const step = 300
 
-  // 🔥 CONVERTE DATA UMA VEZ (evita custo repetido)
   const inicioISO = inicio.toISOString()
   const fimISO = fim.toISOString()
 
@@ -405,8 +427,8 @@ async function load(inicio, fim){
 
     const { data, error } = await sb
       .from("cupons_importados")
-.select("empresa_id,data,raw,id")
-      .gte("data", inicioISO)        // 🔥 FILTRO NO BANCO
+      .select("empresa_id,data,raw,id")
+      .gte("data", inicioISO)
       .lte("data", fimISO)
       .range(from, from + step - 1)
 
@@ -424,8 +446,6 @@ async function load(inicio, fim){
     from += step
   }
 
-  console.log("📊 TOTAL CARREGADO:", all.length)
-
   const dados = process(all, inicio, fim)
 
   render(dados)
@@ -435,8 +455,9 @@ async function load(inicio, fim){
 
   document.getElementById("periodo").innerText =
     `Período: ${inicio.toLocaleString()} → ${fim.toLocaleString()}`
-}
 
+  carregando = false
+}
 // ================= RELOAD =================
 function reload(){
 
@@ -461,6 +482,7 @@ document.getElementById("fim").value = formatLocal(t.fim)
   
 
 load(t.inicio,t.fim)
+startSync()
 
 // ================= REALTIME =================
 sb.channel("rt")
@@ -469,9 +491,16 @@ sb.channel("rt")
   schema:"public",
   table:"cupons_importados"
 },()=>{
-  load(t.inicio,t.fim)
+
+  if(!filtroAtual) return
+
+  load(filtroAtual.inicio, filtroAtual.fim)
+
 })
 .subscribe()
+
+
+  
 function lerJSONSeguro(raw){
 
   try{
@@ -502,6 +531,33 @@ function lerJSONSeguro(raw){
     return null
   }
 }
+
+setInterval(()=>{
+
+  if(!filtroAtual) return
+
+  load(filtroAtual.inicio, filtroAtual.fim)
+
+},10000)
+
+async function startSync(){
+
+  try{
+
+    await fetch("https://grupo-olive.vercel.app/api/sync-vendas",{
+      method:"POST"
+    })
+
+    console.log("SYNC INICIADO")
+
+  }catch(e){
+
+    console.log("ERRO AO INICIAR SYNC", e)
+
+  }
+
+}
+
 </script>
 </body>
 </html>
