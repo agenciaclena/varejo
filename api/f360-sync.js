@@ -19,8 +19,8 @@ export default async function handler(req, res){
 
     const hoje = new Date().toISOString().slice(0,10)
 
-    const inicio = req.query.inicio || hoje
-    const fim = req.query.fim || hoje
+const inicio = req.body?.inicio || hoje
+const fim = req.body?.fim || hoje
 
     let pagina = 1
     let totalInseridos = 0
