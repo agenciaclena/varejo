@@ -141,18 +141,10 @@ hr{
 <header>
   <h1>DASHBOARD FINANCEIRO DV</h1>
 
-<div class="top-actions">
-
-  <select id="filtroStatus" onchange="load()" style="padding:8px;border-radius:8px;">
-    <option value="">Todos Status</option>
-    <option value="Aberto">Abertos</option>
-    <option value="Pago">Pagos</option>
-  </select>
-
-  <button onclick="load()">🔄 Atualizar</button>
-  <div class="status" id="status">--</div>
-
-</div>
+  <div class="top-actions">
+    <button onclick="load()">🔄 Atualizar</button>
+    <div class="status" id="status">--</div>
+  </div>
 </header>
 
 <div id="grid" class="grid"></div>
@@ -353,22 +345,9 @@ async function load(){
 
   try{
 
-const data = await carregarTudo()
+    const data = await carregarTudo()
 
-preencherFiltroStatus(data) // 🔥 AQUI
-const filtro = document.getElementById("filtroStatus").value
-
-let filtrado = data
-
-if(filtro){
-  filtrado = data.filter(v=>{
-if(filtro){
-  filtrado = data.filter(v => v.status === filtro)
-}
-  })
-}
-
-const dados = process(filtrado)
+    const dados = process(data)
 
     render(dados)
 
@@ -390,30 +369,6 @@ load()
 // 🔥 AUTO UPDATE 30 MIN
 setInterval(load, 1800000)
 
-
-
-
-
-
-function preencherFiltroStatus(data){
-
-  const select = document.getElementById("filtroStatus")
-
-  // pega status únicos
-  const statusUnicos = [...new Set(data.map(v => v.status).filter(Boolean))]
-
-  // limpa (mantém "Todos")
-  select.innerHTML = `<option value="">Todos Status</option>`
-
-  // adiciona todos
-  statusUnicos.forEach(s=>{
-    select.innerHTML += `<option value="${s}">${s}</option>`
-  })
-}
-
-
-
-  
 </script>
 
 </body>
