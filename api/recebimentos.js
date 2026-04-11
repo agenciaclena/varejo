@@ -1,39 +1,30 @@
-export default async function handler(req, res) {
+import { createClient } from "@supabase/supabase-js"
 
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-  console.log("🚀 RECEBIMENTOS START")
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE
+)
+
+export default async function handler(req, res){
+
+  console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+  console.log("🚀 SYNC RECEBIMENTOS START")
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
   const startTime = Date.now()
 
-  if (req.method !== "POST") {
-    console.log("⛔ Método inválido:", req.method)
-    return res.status(405).json({ error: "Método não permitido" })
+  if(req.method !== "POST"){
+    return res.status(405).json({ error:"Use POST" })
   }
 
-  try {
+  try{
 
     const { token, dataInicio, dataFim, empresa } = req.body
 
-    console.log("📥 BODY:", req.body)
+    if(!token) return res.status(400).json({ error:"Token ausente" })
+    if(!empresa) return res.status(400).json({ error:"Empresa ausente" })
+    if(!dataInicio || !dataFim) return res.status(400).json({ error:"Datas obrigatórias" })
 
-    // ================= VALIDAÇÕES =================
-    if (!token) {
-      console.log("⛔ Token ausente")
-      return res.status(400).json({ error: "Token de autenticação ausente" })
-    }
-
-    if (!empresa) {
-      console.log("⛔ Empresa ausente")
-      return res.status(400).json({ error: "Empresa não informada" })
-    }
-
-    if (!dataInicio || !dataFim) {
-      console.log("⛔ Datas inválidas")
-      return res.status(400).json({ error: "Data início/fim obrigatória" })
-    }
-
-    // ================= MAPA DE EMPRESAS =================
     const urls = {
       VAREJO_URL_MERCATTO: "https://mercatto.varejofacil.com/api/v1/venda/cupons-fiscais",
       VAREJO_URL_VILLA: "https://deliciagourmet.varejofacil.com/api/v1/venda/cupons-fiscais",
@@ -43,175 +34,166 @@ export default async function handler(req, res) {
 
     const baseURL = urls[empresa]
 
-    if (!baseURL) {
-      console.log("⛔ Empresa inválida:", empresa)
-      return res.status(400).json({ error: `Empresa '${empresa}' não reconhecida.` })
+    if(!baseURL){
+      return res.status(400).json({ error:"Empresa inválida" })
     }
 
-    console.log("🏢 Empresa:", empresa)
-    console.log("📅 Período:", dataInicio, "→", dataFim)
+    console.log(`🏢 Empresa: ${empresa}`)
+    console.log(`📅 Período: ${dataInicio} → ${dataFim}`)
 
-    // ================= CONFIG =================
     const count = 500
-    let start = 0
     let pagina = 1
     let totalGeral = 0
-    let allItems = []
+    let totalPagamentos = 0
+    const ids = new Set()
 
-    // ================= LOOP PAGINAÇÃO =================
-    while (true) {
+    console.log("\n📡 INICIANDO PAGINAÇÃO...\n")
 
-const url = `${baseURL}?pagina=${pagina}&count=${count}&q=dataHoraFechamentoCupom=ge=${dataInicio}T00:00:00;dataHoraFechamentoCupom=le=${dataFim}T23:59:59`
-  console.log(`\n📡 Página ${pagina}`)
-      console.log(`➡️ Start: ${start}`)
-      console.log(`➡️ URL: ${url}`)
+    while(true){
+
+      const url = `${baseURL}?pagina=${pagina}&count=${count}&q=dataHoraFechamentoCupom=ge=${dataInicio}T00:00:00;dataHoraFechamentoCupom=le=${dataFim}T23:59:59`
 
       const t0 = Date.now()
 
-      const response = await fetch(url, {
-        headers: {
+      const response = await fetch(url,{
+        headers:{
           Authorization: token,
-          Accept: "application/json"
+          Accept:"application/json"
         }
       })
 
-      const tempoReq = ((Date.now() - t0) / 1000).toFixed(2)
+      const tempoReq = ((Date.now() - t0)/1000).toFixed(2)
 
-      console.log(`⏱ Tempo requisição: ${tempoReq}s`)
-
-      if (!response.ok) {
+      if(!response.ok){
         const erro = await response.text()
-        console.error("❌ ERRO API:", erro)
-
-        return res.status(response.status).json({
-          ok:false,
-          error: erro,
-          empresa,
-          pagina
-        })
+        console.log(`❌ ERRO API (página ${pagina}):`, erro)
+        throw new Error(erro)
       }
 
       const json = await response.json()
-
       const items = json.items || []
 
-      console.log(`📦 Itens recebidos: ${items.length}`)
+      console.log(
+        `📄 Página ${pagina} | ` +
+        `Itens: ${items.length} | ` +
+        `Tempo: ${tempoReq}s`
+      )
 
-const ids = new Set()
+      if(items.length === 0){
+        console.log("🏁 FIM REAL (sem itens)")
+        break
+      }
 
-while (true) {
+      const inserts = []
+      const pagamentos = []
 
-  const response = await fetch(url,{
-    headers:{
-      Authorization: token,
-      Accept: "application/json"
-    }
-  })
+      for(const cupom of items){
 
-  const json = await response.json()
-  const items = json.items || []
+        if(ids.has(cupom.id)) continue
+        ids.add(cupom.id)
 
-  console.log(`📡 Página ${pagina} | ${items.length}`)
+        const unique_id = empresa + "_" + cupom.id
 
-  if(items.length === 0){
-    console.log("🏁 FIM REAL")
-    break
-  }
+        const valor_total = Number(cupom.valorTotal || 0)
+        const cancelado = !!cupom.cancelada
 
-  for(const item of items){
-    if(!ids.has(item.id)){
-      ids.add(item.id)
-      allItems.push(item)
-    }
-  }
+        const finalizadora_principal =
+          cupom.finalizacoes?.[0]?.descricao || null
 
-  totalGeral = allItems.length
+        inserts.push({
+          unique_id,
+          empresa,
+          empresa_id: empresa,
+          venda_id: cupom.id,
+          data: cupom.data,
+          valor_total,
+          valor_liquido: valor_total,
+          finalizadora_principal,
+          cancelado,
+          raw: cupom
+        })
 
-  // 🔥 ESSA É A REGRA CORRETA
-  if(items.length < count){
-    console.log("🏁 ÚLTIMA PÁGINA")
-    break
-  }
+        if(Array.isArray(cupom.finalizacoes)){
+          cupom.finalizacoes.forEach(f=>{
+            pagamentos.push({
+              cupom_unique_id: unique_id,
+              finalizadora_id: String(f.finalizadoraId),
+              finalizadora_nome: f.descricao,
+              valor: Number(f.valor || 0)
+            })
+          })
+        }
+      }
 
-  pagina++
+      if(inserts.length > 0){
 
-  await new Promise(r => setTimeout(r, 150))
+        const { error } = await supabase
+          .from("cupons_importados")
+          .upsert(inserts, { onConflict:"unique_id" })
 
-  if(pagina > 1000){
-    console.log("⛔ segurança")
-    break
-  }
-}
+        if(error){
+          console.log("❌ ERRO INSERT:", error.message)
+        } else {
+          totalGeral += inserts.length
+        }
+      }
 
-console.log(`🆕 Novos adicionados: ${novos}`)
-console.log(`📊 Total acumulado real: ${totalGeral}`)
+      if(pagamentos.length > 0){
 
-// 🔴 Se não veio nada → acabou
-if (items.length === 0) {
-  console.log("📭 Fim da paginação")
-  break
-}
+        await supabase
+          .from("cupons_pagamentos")
+          .insert(pagamentos)
 
-// 🔴 SE NÃO TROUXE NADA NOVO → PARA (CORREÇÃO PRINCIPAL)
-if (novos === 0) {
-  console.log("🛑 DUPLICAÇÃO DETECTADA → PARANDO")
-  break
-}
+        totalPagamentos += pagamentos.length
+      }
 
-// 🔴 SE PAROU DE CRESCER → PARA
-if (allItems.length === global.ultimaQtd) {
-  console.log("🛑 SEM CRESCIMENTO → PARANDO")
-  break
-}
+      console.log(
+        `💾 Inseridos: ${inserts.length} | ` +
+        `💳 Pagamentos: ${pagamentos.length} | ` +
+        `📊 Total: ${totalGeral}`
+      )
 
-global.ultimaQtd = allItems.length
+      if(items.length < count){
+        console.log("🏁 ÚLTIMA PÁGINA")
+        break
+      }
 
-// 🔥 Próxima página
-pagina++
+      pagina++
 
-// 🛑 Segurança
-if (pagina > 1000) {
-  console.log("⛔ LOOP BLOQUEADO")
-  break
-}
+      await new Promise(r => setTimeout(r, 120))
 
-      // 🛑 Proteção contra loop infinito
-      if (pagina > 1000) {
-        console.log("⛔ LOOP BLOQUEADO (segurança)")
+      if(pagina > 1000){
+        console.log("⛔ SEGURANÇA LOOP")
         break
       }
     }
 
-    const tempoTotal = ((Date.now() - startTime) / 1000).toFixed(2)
+    const tempoTotal = ((Date.now() - startTime)/1000).toFixed(2)
 
     console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     console.log("✅ FINALIZADO")
-    console.log("📊 Total cupons:", totalGeral)
-    console.log("📄 Total páginas:", pagina)
-    console.log("⏱ Tempo total:", tempoTotal, "s")
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    console.log(`📊 Total inseridos: ${totalGeral}`)
+    console.log(`💳 Total pagamentos: ${totalPagamentos}`)
+    console.log(`📄 Total páginas: ${pagina}`)
+    console.log(`⏱ Tempo total: ${tempoTotal}s`)
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
 
-    return res.status(200).json({
-      ok: true,
+    return res.json({
+      ok:true,
       empresa,
-      periodo: { inicio: dataInicio, fim: dataFim },
-      total: totalGeral,
+      totalInseridos: totalGeral,
+      totalPagamentos,
       paginas: pagina,
-      tempo: tempoTotal,
-      items: allItems
+      tempo: tempoTotal
     })
 
-  } catch (error) {
+  }catch(e){
 
-    console.error("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    console.error("💥 ERRO GERAL")
-    console.error(error)
-    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    console.log("💥 ERRO:", e.message)
 
     return res.status(500).json({
       ok:false,
-      error: "Falha ao consultar API",
-      details: error.message
+      error:e.message
     })
   }
 }
