@@ -671,9 +671,49 @@ while(true){
 console.log("📊 TOTAL MÊS:", allMes.length)
 
 
-const dadosMes = process(allMes || [], mes.inicio, mes.fim)
-// envia os dois
-render(dados, dadosMes)
+// 🔵 PRIMEIRO RENDER (RÁPIDO - SEM META)
+render(dados, {})
+
+// 🟡 CARREGAR META DEPOIS (SEM TRAVAR)
+setTimeout(async ()=>{
+
+  const mes = mesOperacional()
+
+  let allMes = []
+  let fromMes = 0
+  const stepMes = 300
+
+  while(true){
+
+    const { data, error } = await sb
+      .from("cupons_importados")
+      .select("empresa_id,data,raw,id")
+      .gte("data", mes.inicio.toISOString())
+      .lte("data", mes.fim.toISOString())
+      .range(fromMes, fromMes + stepMes - 1)
+
+    if(error){
+      console.error("❌ ERRO MÊS:", error)
+      break
+    }
+
+    if(!data || data.length === 0) break
+
+    allMes = allMes.concat(data)
+
+    if(data.length < stepMes) break
+
+    fromMes += stepMes
+  }
+
+  console.log("📊 TOTAL MÊS:", allMes.length)
+
+  const dadosMes = process(allMes, mes.inicio, mes.fim)
+
+  // 🔥 RE-RENDER COM META
+  render(dados, dadosMes)
+
+},100)
 
   document.getElementById("status").innerText =
     "Atualizado " + new Date().toLocaleTimeString()
