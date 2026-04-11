@@ -4,13 +4,11 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
-
 export default async function handler(req, res){
 
   console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
   console.log("🚀 SYNC RECEBIMENTOS START")
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-
   const startTime = Date.now()
 
   if(req.method !== "POST"){
