@@ -62,8 +62,8 @@ const agora = new Date(
 const hora = agora.getHours()
 
 // 🔥 REGRA PADARIA (RODA SÓ ATÉ 22H)
-if(emp.id === "VAREJO_URL_PADARIA" && hora >= 22){
-  console.log("🌙 PADARIA ignorada após 22h")
+if(emp.id === "VAREJO_URL_PADARIA" && hora >= 23){
+  console.log("🌙 PADARIA ignorada após 23h")
   continue
 }
 
