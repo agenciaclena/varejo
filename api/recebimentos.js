@@ -44,7 +44,7 @@ export default async function handler(req, res){
     console.log(`🏢 Empresa: ${empresa}`)
     console.log(`📅 Período: ${dataInicio} → ${dataFim}`)
 
-    const count = 100
+    const count = 500
     let pagina = 1
     let totalGeral = 0
     let totalPagamentos = 0
