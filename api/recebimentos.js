@@ -156,7 +156,7 @@ export default async function handler(req, res){
       pagina++
       await new Promise(r => setTimeout(r, 120))
 
-      if(pagina > 1000){
+      if(pagina > 20){
         console.log("⛔ SEGURANÇA LOOP")
         break
       }
