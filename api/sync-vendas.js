@@ -206,11 +206,6 @@ if(pagamentos.length){
 console.log("🆕 Novos:", novos)
 console.log("📊 Total processado:", totalProcessados)
 
-// 🔥 PARADA REAL (ESSENCIAL)
-if(items.length < count){
-  console.log("🏁 Última página real")
-  break
-}
 // 🔥 FIM REAL
 if(items.length < count){
   console.log("🏁 Última página")
