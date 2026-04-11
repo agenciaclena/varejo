@@ -16,7 +16,6 @@ export default async function handler(req, res){
   if(req.method !== "POST"){
     return res.status(405).json({ error:"Use POST" })
   }
-
   try{
 
     const { token, dataInicio, dataFim, empresa } = req.body
@@ -99,7 +98,6 @@ export default async function handler(req, res){
 
         const finalizadora_principal =
           cupom.finalizacoes?.[0]?.descricao || null
-
         inserts.push({
           unique_id,
           empresa,
@@ -112,7 +110,6 @@ export default async function handler(req, res){
           cancelado,
           raw: cupom
         })
-
         if(Array.isArray(cupom.finalizacoes)){
           cupom.finalizacoes.forEach(f=>{
             pagamentos.push({
@@ -124,7 +121,6 @@ export default async function handler(req, res){
           })
         }
       }
-
       if(inserts.length > 0){
 
         const { error } = await supabase
@@ -159,7 +155,6 @@ export default async function handler(req, res){
       }
 
       pagina++
-
       await new Promise(r => setTimeout(r, 120))
 
       if(pagina > 1000){
