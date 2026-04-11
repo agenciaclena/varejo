@@ -53,7 +53,7 @@ export default async function handler(req, res){
     console.log(`🏢 Empresa: ${empresa}`)
     console.log(`📅 Dias: ${dias.join(" | ")}`)
 
-    const count = 100 // 🔥 MAIS RÁPIDO E ESTÁVEL
+    const count = 500 // 🔥 MAIS RÁPIDO E ESTÁVEL
     let totalGeral = 0
     let totalPagamentos = 0
 
