@@ -609,8 +609,18 @@ const dados = process(all, inicio, fim)
 
 // 🟡 dados do mês (NOVO)
 const mes = mesOperacional()
-const dadosMes = process(all, mes.inicio, mes.fim)
+// 🔥 BUSCAR MÊS COMPLETO (SEPARADO)
+const { data: allMes, error: errMes } = await sb
+  .from("cupons_importados")
+  .select("empresa_id,data,raw,id")
+  .gte("data", mes.inicio.toISOString())
+  .lte("data", mes.fim.toISOString())
 
+if(errMes){
+  console.error("❌ ERRO MÊS:", errMes)
+}
+
+const dadosMes = process(allMes || [], mes.inicio, mes.fim)
 // envia os dois
 render(dados, dadosMes)
 
