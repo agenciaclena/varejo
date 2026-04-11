@@ -757,6 +757,7 @@ function mesOperacional(){
   
 // ================= LOAD =================
 async function load(inicio, fim){
+  document.getElementById("loading").style.display = "flex" // ✅ AQUI
 
   let all = []
   let from = 0
@@ -846,6 +847,7 @@ setTimeout(async ()=>{
 
   document.getElementById("periodo").innerText =
     `Período: ${inicio.toLocaleString()} → ${fim.toLocaleString()}`
+  document.getElementById("loading").style.display = "none" // ✅ AQUI
 }
 
 // ================= RELOAD =================
