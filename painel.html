@@ -503,6 +503,36 @@ const pctOuro = Math.min((dMes.total / meta.ouro) * 100, 100)
   🍽️ Almoço: <b>${brl(d.almocoTotal)}</b> (${d.almocoVendas} vendas)
 </div>
 
+
+<div style="
+  margin-top:8px;
+  padding:10px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
+  color:#fff;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:13px;
+  font-weight:600;
+">
+
+  <span style="opacity:0.7">📊 Mês</span>
+
+  <span style="
+    font-size:15px;
+    font-weight:800;
+    color:#22c55e;
+  ">
+    ${brl(dMes.total)}
+  </span>
+
+</div>
+
+
+
+
+
 <div style="color:red;font-size:12px">
   ❌ ${d.cancelados} cancelados (${brl(d.valorCancelado)})
 </div>
