@@ -97,21 +97,51 @@ const url = `${baseURL}?pagina=${pagina}&count=${count}&q=dataHoraFechamentoCupo
 
       console.log(`📦 Itens recebidos: ${items.length}`)
 
-// 🔥 CONTROLE DE DUPLICIDADE
-if (!global.ids) global.ids = new Set()
-if (!global.ultimaQtd) global.ultimaQtd = 0
+const ids = new Set()
 
-let novos = 0
+while (true) {
 
-for (const item of items) {
-  if (!global.ids.has(item.id)) {
-    global.ids.add(item.id)
-    allItems.push(item)
-    novos++
+  const response = await fetch(url,{
+    headers:{
+      Authorization: token,
+      Accept: "application/json"
+    }
+  })
+
+  const json = await response.json()
+  const items = json.items || []
+
+  console.log(`📡 Página ${pagina} | ${items.length}`)
+
+  if(items.length === 0){
+    console.log("🏁 FIM REAL")
+    break
+  }
+
+  for(const item of items){
+    if(!ids.has(item.id)){
+      ids.add(item.id)
+      allItems.push(item)
+    }
+  }
+
+  totalGeral = allItems.length
+
+  // 🔥 ESSA É A REGRA CORRETA
+  if(items.length < count){
+    console.log("🏁 ÚLTIMA PÁGINA")
+    break
+  }
+
+  pagina++
+
+  await new Promise(r => setTimeout(r, 150))
+
+  if(pagina > 1000){
+    console.log("⛔ segurança")
+    break
   }
 }
-
-totalGeral = allItems.length
 
 console.log(`🆕 Novos adicionados: ${novos}`)
 console.log(`📊 Total acumulado real: ${totalGeral}`)
