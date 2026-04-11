@@ -208,11 +208,10 @@ console.log("🆕 Novos:", novos)
 console.log("📊 Total processado:", totalProcessados)
 
 // 🔥 PARADA REAL (ESSENCIAL)
-if(novos === 0){
-  console.log("🛑 Nenhum novo → FINALIZANDO")
+if(items.length < count){
+  console.log("🏁 Última página real")
   break
 }
-
 // 🔥 FIM REAL
 if(items.length < count){
   console.log("🏁 Última página")
