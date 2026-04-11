@@ -76,7 +76,7 @@ export default async function handler(req, res){
       )
 
       if(items.length === 0){
-        console.log("🏁 FIM REAL (sem itens)")
+        console.log("🏁 FIM REAL - CONCUIDA (sem itens)")
         break
       }
 
