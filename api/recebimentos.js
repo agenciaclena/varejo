@@ -4,7 +4,6 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
-
 export default async function handler(req, res){
 
   console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -23,8 +22,6 @@ export default async function handler(req, res){
 
     if(!token) return res.status(400).json({ error:"Token ausente" })
     if(!empresa) return res.status(400).json({ error:"Empresa ausente" })
-
-    // ================= EMPRESAS =================
     const urls = {
       VAREJO_URL_MERCATTO: "https://mercatto.varejofacil.com/api/v1/venda/cupons-fiscais",
       VAREJO_URL_VILLA: "https://deliciagourmet.varejofacil.com/api/v1/venda/cupons-fiscais",
