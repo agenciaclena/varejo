@@ -214,7 +214,7 @@ if(items.length < count){
 
           pagina++
 // 🔥 evita travar API
-await new Promise(r => setTimeout(r, 500))
+await new Promise(r => setTimeout(r, 100))
           // 🔥 LIMITE DE SEGURANÇA
 // 🔥 LIMITE PADARIA
 if(pagina > 50){
