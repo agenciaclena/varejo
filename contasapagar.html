@@ -231,10 +231,10 @@ function process(data){
 
     const d = result[empresa]
 
-    if(dataStr === hoje){
-      d.hoje += valor
-      d.hojeQtd++
-    }
+if(dataStr === hoje && status.includes("Aberto")){
+  d.hoje += valor
+  d.hojeQtd++
+}
 
     const mes = dataObj.getMonth()
 
