@@ -770,9 +770,7 @@ async function load(inicio, fim){
 
     const { data, error } = await sb
       .from("cupons_importados")
-.select("empresa_id,data,raw,id")
-      .gte("data", inicioISO)        // 🔥 FILTRO NO BANCO
-      .lte("data", fimISO)
+      .select("empresa_id,data,raw,id")
       .range(from, from + step - 1)
 
     if(error){
