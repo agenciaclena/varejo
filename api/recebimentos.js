@@ -66,11 +66,17 @@ const url = `${baseURL}?pagina=${pagina}&count=${count}&q=data=ge=${dataInicio};
 
       const tempoReq = ((Date.now() - t0)/1000).toFixed(2)
 
-      if(!response.ok){
-        const erro = await response.text()
-        console.log(`❌ ERRO API (página ${pagina}):`, erro)
-        throw new Error(erro)
-      }
+if(!response.ok){
+
+  const erro = await response.text()
+
+  console.log(`❌ ERRO API (página ${pagina}) - IGNORANDO`)
+  
+  pagina++
+  await new Promise(r => setTimeout(r, 500))
+  
+  continue
+}
 
       const json = await response.json()
       const items = json.items || []
