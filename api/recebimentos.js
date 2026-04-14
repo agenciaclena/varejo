@@ -54,8 +54,7 @@ export default async function handler(req, res){
 
     while(true){
 
-      const url = `${baseURL}?pagina=${pagina}&count=${count}&q=dataHoraFechamentoCupom=ge=${dataInicio}T00:00:00;dataHoraFechamentoCupom=le=${dataFim}T23:59:59`
-
+const url = `${baseURL}?pagina=${pagina}&count=${count}&q=data=ge=${dataInicio};data=le=${dataFim}`
       const t0 = Date.now()
 
       const response = await fetch(url,{
