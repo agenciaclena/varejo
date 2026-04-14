@@ -371,7 +371,7 @@ const sb = window.supabase.createClient(
   "https://opljdxaeatvqfntjnljt.supabase.co",
   "sb_publishable_16kakBOCh114FnCSZ0RaUw_pQYEiBZ5"
 )
-
+const STORAGE_KEY = "painel_dv_cache"
 // ================= MAPA ORIGINAL =================
 const MAPA_ORIGINAL = {
   VAREJO_URL_DELICIA: [
@@ -837,8 +837,33 @@ function mesOperacional(){
 
 
 
+function salvarCache(dados, dadosMes){
 
-  
+  const payload = {
+    dados,
+    dadosMes,
+    atualizadoEm: new Date().toISOString()
+  }
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+
+}
+
+
+
+  function carregarCache(){
+
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if(!raw) return null
+
+    return JSON.parse(raw)
+
+  }catch(e){
+    return null
+  }
+
+}
 // ================= LOAD =================
 async function load(inicio, fim){
 
@@ -895,7 +920,7 @@ while(true){
   const parcial = process(dadosParciais, inicio, fim)
 
   render(parcial, window.dadosMesCache || {})
-
+salvarCache(parcial, window.dadosMesCache || {})
   if(data.length < step){
     console.log("🏁 ÚLTIMA PÁGINA")
     break
@@ -960,7 +985,9 @@ window.dadosMesCache = dadosMes
 
 // 🔥 RENDER FINAL COMPLETO
 render(process(dadosParciais, inicio, fim), dadosMes)
+const finalDados = process(dadosParciais, inicio, fim)
 
+salvarCache(finalDados, dadosMes)
 // 🔥 FINALIZA LOADING
 dot.classList.remove("loading")
 dot.style.background = "#22c55e"
@@ -995,8 +1022,14 @@ document.getElementById("fim").value = formatLocal(t.fim)
 
   
 
-load(t.inicio,t.fim)
+const cache = carregarCache()
 
+if(cache){
+  console.log("⚡ CARREGADO DO CACHE")
+  render(cache.dados || {}, cache.dadosMes || {})
+}
+
+load(t.inicio,t.fim)
   
 let carregando = false
 
@@ -1130,17 +1163,15 @@ function abrirPopup(emp){
 const popupEl = document.getElementById("popupOverlay")
 
 if(popupEl){
-popupEl.addEventListener("click",(e)=>{
+  popupEl.addEventListener("click",(e)=>{
+    if(e.target.id === "popupOverlay"){
+      popupEl.style.display = "none"
+      popupEl.classList.remove("active")
+    }
+  })
+}
+  
 
-  // 🔥 SE CLICOU FORA DA CAIXA
-  if(!document.getElementById("popupBox").contains(e.target)){
-    
-    popupEl.style.display = "none"
-    popupEl.classList.remove("active")
-
-  }
-
-})
 
 
 
