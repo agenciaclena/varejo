@@ -238,11 +238,31 @@ if(dataStr === hoje && status.includes("Aberto")){
 
     const mes = dataObj.getMonth()
 
-    if(mes === mesAtual) d.mes += valor
+if(mes === mesAtual){
+
+  if(
+    status.includes("Aberto") ||
+    status.includes("Liquidado") ||
+    status.includes("Pago")
+  ){
+    d.mes += valor
+  }
+
+}
+    
+    
     if(mes === mesAnterior) d.mesAnterior += valor
 
-    if(status.includes("Aberto")) d.aberto++
-    else d.pago++
+if(status.includes("Aberto")){
+  d.aberto++
+}
+else if(
+  status.includes("Liquidado") ||
+  status.includes("Pago")
+){
+  d.pago++
+}
+    
 
     const raw = v.raw || {}
 
@@ -303,8 +323,8 @@ function render(dados){
         <div class="section">
           <span class="badge red">STATUS</span>
           <div class="row">Abertos: ${d.aberto}</div>
-          <div class="row">Pagos: ${d.pago}</div>
-        </div>
+<div class="row">Liquidadas: ${d.pago}</div>
+</div>
 
         <hr>
 
