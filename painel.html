@@ -873,17 +873,9 @@ document.getElementById("fim").value = formatLocal(t.fim)
   
 
 load(t.inicio,t.fim)
-
-// ================= REALTIME =================
-sb.channel("rt")
-.on("postgres_changes",{
-  event:"INSERT",
-  schema:"public",
-  table:"cupons_importados"
-},()=>{
+setInterval(()=>{
   load(t.inicio,t.fim)
-})
-.subscribe()
+}, 5000)
 function lerJSONSeguro(raw){
 
   try{
