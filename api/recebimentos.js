@@ -165,8 +165,8 @@ pagamentos.push({
       pagina++
       await new Promise(r => setTimeout(r, 120))
 
-  if(pagina > 50){
-  console.log("⛔ SEGURANÇA LOOP (50 páginas)")
+  if(pagina > 5){
+  console.log("⛔ SEGURANÇA LOOP (5 páginas)")
   break
 }
     }
