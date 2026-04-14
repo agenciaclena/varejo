@@ -745,7 +745,8 @@ function mesOperacional(){
   
 // ================= LOAD =================
 async function load(inicio, fim){
-
+console.log("🚀 INICIANDO LOAD")
+console.log("📅 Período:", inicio, "→", fim)
 const dot = document.getElementById("statusDot")
 
 dot.classList.add("loading")
@@ -763,12 +764,16 @@ dot.style.boxShadow = "0 0 10px #f59e0b"
   while(true){
 
     const { data, error } = await sb
+      
       .from("cupons_importados")
-.select("empresa_id,data,raw,id")
+      .select("empresa_id,data,raw,id")
       .gte("data", inicioISO)        // 🔥 FILTRO NO BANCO
       .lte("data", fimISO)
       .range(from, from + step - 1)
+console.log(`📄 Página ${from/step + 1} | Itens: ${data?.length || 0}`)
 
+
+    
 if(error){
   console.error("❌ ERRO SUPABASE:", error)
 
@@ -789,10 +794,10 @@ if(error){
   }
 
   console.log("📊 TOTAL CARREGADO:", all.length)
-
+console.log("📦 DADOS BRUTOS:", all)
 // 🔵 dados do filtro (mantém igual)
 const dados = process(all, inicio, fim)
-
+console.log("🧠 DADOS PROCESSADOS:", dados)
 // 🟡 dados do mês (NOVO)
 const mes = mesOperacional()
 
@@ -801,7 +806,7 @@ render(dados, {})
 
 // 🟡 CARREGAR META DEPOIS (UMA ÚNICA VEZ)
 setTimeout(async ()=>{
-
+console.log("📦 INICIANDO CARGA DO MÊS")
   const mes = mesOperacional()
 
   let allMes = []
@@ -809,13 +814,13 @@ setTimeout(async ()=>{
   const stepMes = 300
 
   while(true){
-
     const { data, error } = await sb
       .from("cupons_importados")
       .select("empresa_id,data,raw,id")
       .gte("data", mes.inicio.toISOString())
       .lte("data", mes.fim.toISOString())
       .range(fromMes, fromMes + stepMes - 1)
+console.log(`📄 Página MÊS ${fromMes/stepMes + 1} | Itens: ${data?.length || 0}`)
 
     if(error){
       console.error("❌ ERRO MÊS:", error)
@@ -836,7 +841,7 @@ setTimeout(async ()=>{
   }
 
   const dadosMes = process(allMes, mes.inicio, mes.fim)
-
+console.log("🧠 DADOS MÊS:", dadosMes)
   render(dados, dadosMes)
 
   // ✅ FINAL AGORA É AQUI
@@ -845,7 +850,7 @@ setTimeout(async ()=>{
   dot.style.boxShadow = "0 0 10px #22c55e"
 
 },100)
-
+console.log("✅ FINALIZADO LOAD")
   document.getElementById("periodo").innerText =
     `Período: ${inicio.toLocaleString()} → ${fim.toLocaleString()}`
 
