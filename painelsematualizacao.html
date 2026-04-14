@@ -763,15 +763,24 @@ async function load(inicio, fim){
   const step = 300
 
   // 🔥 CONVERTE DATA UMA VEZ (evita custo repetido)
-  const inicioISO = inicio.toISOString()
-  const fimISO = fim.toISOString()
+function toISO(date){
+  return new Date(
+    date.toLocaleString("en-US",{ timeZone:"America/Bahia" })
+  ).toISOString()
+}
+
+const inicioISO = toISO(inicio)
+const fimISO = toISO(fim)
+  
 
   while(true){
 
-    const { data, error } = await sb
-      .from("cupons_importados")
-      .select("empresa_id,data,raw,id")
-      .range(from, from + step - 1)
+const { data, error } = await sb
+  .from("cupons_importados")
+  .select("empresa_id,data,raw,id")
+  .gte("data", inicioISO)
+  .lte("data", fimISO)
+  .range(from, from + step - 1)
 
     if(error){
       console.error("❌ ERRO SUPABASE:", error)
