@@ -803,8 +803,30 @@ console.log("📦 DADOS BRUTOS:", all)
 const mes = mesOperacional()
 
 // 🔥 usa OS MESMOS dados já carregados
-const dadosMes = process(all, mes.inicio, mes.fim)
+// 🔥 BUSCAR DADOS DO MÊS SEPARADO
+let allMes = []
+let fromMes = 0
 
+while(true){
+
+  const { data } = await sb
+    .from("cupons_importados")
+    .select("empresa_id,data,raw,id")
+    .gte("data", mes.inicio.toISOString())
+    .lte("data", mes.fim.toISOString())
+    .range(fromMes, fromMes + step - 1)
+
+  if(!data || data.length === 0) break
+
+  allMes = allMes.concat(data)
+
+  if(data.length < step) break
+
+  fromMes += step
+}
+
+// 🔥 AGORA SIM É O MÊS REAL
+const dadosMes = process(allMes, mes.inicio, mes.fim)
 // 🔥 dados do filtro (dia)
 const dadosDia = process(all, inicio, fim)
 
@@ -849,9 +871,14 @@ document.getElementById("fim").value = formatLocal(t.fim)
   
 
 load(t.inicio,t.fim)
+
+  
 setInterval(()=>{
-  load(t.inicio,t.fim)
+  const novoTurno = turno()
+  load(novoTurno.inicio, novoTurno.fim)
 }, 120000)
+
+  
 function lerJSONSeguro(raw){
 
   try{
