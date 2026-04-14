@@ -4,8 +4,8 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
-export default async function handler(req, res){
-
+module.exports = async function handler(req, res){
+  
   console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
   console.log("🚀 SYNC RECEBIMENTOS START")
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -81,10 +81,7 @@ const url = `${baseURL}?pagina=${pagina}&count=${count}&q=data=ge=${dataInicio};
         `Tempo: ${tempoReq}s`
       )
 
-      if(items.length === 0){
-        console.log("🏁 FIM REAL - CONCUIDA (sem itens)")
-        break
-      }
+
 
       const inserts = []
       const pagamentos = []
@@ -95,8 +92,6 @@ const unique_id = empresa + "_" + cupom.id
 
 if(ids.has(unique_id)) continue
 ids.add(unique_id)
-
-        const unique_id = empresa + "_" + cupom.id
 
         const valor_total = Number(cupom.valorTotal || 0)
         const cancelado = !!cupom.cancelada
@@ -117,12 +112,14 @@ ids.add(unique_id)
         })
         if(Array.isArray(cupom.finalizacoes)){
           cupom.finalizacoes.forEach(f=>{
-            pagamentos.push({
-              cupom_unique_id: unique_id,
-              finalizadora_id: String(f.finalizadoraId),
-              finalizadora_nome: f.descricao,
-              const valor = Number(f.valor || 0) - Number(f.troco || 0)
-            })
+const valor = Number(f.valor || 0) - Number(f.troco || 0)
+
+pagamentos.push({
+  cupom_unique_id: unique_id,
+  finalizadora_id: String(f.finalizadoraId),
+  finalizadora_nome: f.descricao,
+  valor
+})
           })
         }
       }
