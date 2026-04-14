@@ -5,7 +5,6 @@
 <title>PAINEL DV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   
@@ -116,7 +115,7 @@ button:hover{
 /* ================= GRID ================= */
 .grid{
   display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
+  grid-template-columns: 1fr 1fr;
   gap:20px;
   padding:20px;
 }
@@ -291,7 +290,13 @@ button:hover{
 }
 
 
-
+.logo{
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #e5e7eb;
+}
 
 
 
@@ -323,8 +328,12 @@ button:hover{
 <div id="kpis"></div>
 
 <!-- GRID -->
-<div id="grid" class="grid"></div>
+<div class="grid">
 
+  <div id="left"></div>
+  <div id="right"></div>
+
+</div>
 
 
 <script>
@@ -623,16 +632,105 @@ function getMetaEmpresa(nome){
 // ================= RENDER =================
 function render(dados, dadosMes){
   renderKPIs(dados)
-  const grid = document.getElementById("grid")
-  grid.innerHTML=""
+const left = document.getElementById("left")
+const right = document.getElementById("right")
 
-  Object.keys(dados).forEach(emp=>{
+left.innerHTML = ""
+right.innerHTML = ""
 
+const ORDEM = [
+  "VILLA",
+  "DELICIA",
+  "PADARIA",
+  "MERCATTO RESTAURANTE",
+  "MERCATTO EMPÓRIO",
+  "MKIDS"
+]
+
+ORDEM.forEach(nomeBusca=>{
+
+  const emp = Object.keys(dados).find(e=>e.includes(nomeBusca))
+  if(!emp) return
+
+  
 const d = dados[emp]
 const dMes = dadosMes[emp] || { total:0 }
-    grid.innerHTML += `
-      <div class="card">
-        <div class="empresa">${emp}</div>
+const card = `
+  <div class="card">
+
+    <div class="empresa">
+      <img src="${getLogo(emp)}" class="logo">
+    </div>
+
+    <div class="valor">${brl(d.total)}</div>
+
+    ${(() => {
+
+      const meta = getMetaEmpresa(emp)
+      if(!meta) return ""
+
+      const pctPrata = Math.min((dMes.total / meta.prata) * 100, 100)
+      const pctOuro = Math.min((dMes.total / meta.ouro) * 100, 100)
+
+      return `
+        <div class="metas">
+
+          <div class="bola prata" style="--p:${pctPrata}%">
+            <span>${pctPrata.toFixed(0)}%</span>
+          </div>
+
+          <div class="bola ouro" style="--p:${pctOuro}%">
+            <span>${pctOuro.toFixed(0)}%</span>
+          </div>
+
+        </div>
+
+        <div style="font-size:11px;margin-top:8px;color:#64748b">
+          PRATA: ${brl(meta.prata)}<br>
+          OURO: ${brl(meta.ouro)}
+        </div>
+      `
+    })()}
+
+    <div>${d.vendas} vendas</div>
+
+    <div style="margin-top:6px;padding:6px;background:#f1f5f9;border-radius:6px;font-size:12px">
+      🍽️ Almoço: <b>${brl(d.almocoTotal)}</b> (${d.almocoVendas} vendas)
+    </div>
+
+    <div style="
+      margin-top:8px;
+      padding:10px;
+      border-radius:10px;
+      background:linear-gradient(135deg,#0f172a,#1e293b);
+      color:#fff;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:13px;
+      font-weight:600;
+    ">
+      <span style="opacity:0.7">📊 Mês</span>
+      <span style="font-size:15px;font-weight:800;color:#22c55e;">
+        ${brl(dMes.total)}
+      </span>
+    </div>
+
+    <div style="color:red;font-size:12px">
+      ❌ ${d.cancelados} cancelados (${brl(d.valorCancelado)})
+    </div>
+
+    ${
+      Object.entries(d.finais)
+      .sort((a,b)=>b[1]-a[1])
+      .map(f=>`<div class="item">${f[0]} <b>${brl(f[1])}</b></div>`)
+      .join("")
+    }
+
+  </div>
+`
+
+
 <div class="valor">${brl(d.total)}</div>
 
 ${(() => {
@@ -949,7 +1047,17 @@ function lerJSONSeguro(raw){
   `
 }
 
+function getLogo(emp){
 
+  if(emp.includes("VILLA")) return "logo/villa.png"
+  if(emp.includes("DELICIA")) return "logo/delicia.png"
+  if(emp.includes("PADARIA")) return "logo/padaria.png"
+  if(emp.includes("RESTAURANTE")) return "logo/mercattorestaurante.png"
+  if(emp.includes("EMPÓRIO")) return "logo/mercattoemporio.png"
+  if(emp.includes("MKIDS")) return "logo/mkids.png"
+
+  return ""
+}
 
 
 
