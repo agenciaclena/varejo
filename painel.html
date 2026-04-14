@@ -823,21 +823,17 @@ function mesOperacional(){
 
   const now = new Date()
 
-  // 🔥 último dia do mês anterior às 04:00
   const inicio = new Date(
     now.getFullYear(),
     now.getMonth(),
-    0, // dia 0 = último dia do mês anterior
-    4,0,0
+    1,
+    4,0,0,0
   )
 
   const fim = new Date()
 
   return { inicio, fim }
 }
-
-
-
 
 
 
@@ -895,7 +891,7 @@ while(true){
   // 🔥 RENDER PROGRESSIVO
   const parcial = process(dadosParciais, inicio, fim)
 
-render(parcial, window.dadosMesCache || {})
+render(parcial, {})
   if(data.length < step) break
 
   from += step
@@ -907,25 +903,43 @@ console.log("📊 TOTAL CARREGADO:", dadosParciais.length)
 // 🔥 MÊS (usa os mesmos dados já carregados)
 const mes = mesOperacional()
 
-const { data: dadosMesBruto } = await sb
+let dadosMesBruto = []
+let fromMes = 0
+const stepMes = 300
+
+while(true){
+
+const { data, error } = await sb
   .from("cupons_importados")
   .select("empresa_id,data,raw,id")
-.select("empresa_id,data,raw,id")
+  .gte("data", mes.inicio.toISOString())
+  .lte("data", mes.fim.toISOString())
+  .range(fromMes, fromMes + stepMes - 1)
+
+  if(error){
+    console.error("ERRO MES:", error)
+    break
+  }
+
+  if(!data || data.length === 0) break
+
+  dadosMesBruto = dadosMesBruto.concat(data)
+
+  if(data.length < stepMes) break
+
+  fromMes += stepMes
+}
 
 const dadosMesTratado = (dadosMesBruto || [])
   .map(v => ({
     ...v,
     raw: lerJSONSeguro(v.raw)
   }))
-  .filter(v => {
-
-    const p = parse(v)
-    if(!p || !p.data) return false
-
-    const d = new Date(p.data)
-
-    return d >= mes.inicio && d <= mes.fim
-  })
+const dadosMesTratado = (dadosMesBruto || [])
+  .map(v => ({
+    ...v,
+    raw: lerJSONSeguro(v.raw)
+  }))
 
 
   
@@ -1104,16 +1118,16 @@ function abrirPopup(emp){
 
 
 
-document.getElementById("popupOverlay").addEventListener("click",(e)=>{
-  if(e.target.id === "popupOverlay"){
-    e.currentTarget.style.display = "none"
-    e.currentTarget.classList.remove("active")
-  }
-})
+const popupEl = document.getElementById("popupOverlay")
 
-
-
-
+if(popupEl){
+  popupEl.addEventListener("click",(e)=>{
+    if(e.target.id === "popupOverlay"){
+      popupEl.style.display = "none"
+      popupEl.classList.remove("active")
+    }
+  })
+}
   
 
 
