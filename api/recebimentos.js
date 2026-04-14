@@ -161,10 +161,10 @@ export default async function handler(req, res){
       pagina++
       await new Promise(r => setTimeout(r, 120))
 
-      if(pagina > 5){
-        console.log("⛔ SEGURANÇA LOOP")
-        break
-      }
+  if(pagina > 50){
+  console.log("⛔ SEGURANÇA LOOP (50 páginas)")
+  break
+}
     }
 
     const tempoTotal = ((Date.now() - startTime)/1000).toFixed(2)
