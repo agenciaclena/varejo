@@ -541,8 +541,8 @@ function process(data, inicio, fim){
   data.forEach(v=>{
 
 const raw = v.raw
-if(!raw) return null
-
+if(!raw) return
+  
 const id = raw?.id
     // 🔥 BLOQUEIO DE DUPLICADOS
     if(!id) return
@@ -896,8 +896,7 @@ while(true){
   // 🔥 RENDER PROGRESSIVO
   const parcial = process(dadosParciais, inicio, fim)
 
-  render(parcial, window.dadosMesCache)
-
+render(parcial, {})
   if(data.length < step) break
 
   from += step
@@ -915,10 +914,23 @@ const { data: dadosMesBruto } = await sb
   .gte("data", mes.inicio.toISOString())
   .lte("data", mes.fim.toISOString())
 
-const dadosMesTratado = (dadosMesBruto || []).map(v => ({
-  ...v,
-  raw: lerJSONSeguro(v.raw)
-}))
+const dadosMesTratado = (dadosMesBruto || [])
+  .map(v => ({
+    ...v,
+    raw: lerJSONSeguro(v.raw)
+  }))
+  .filter(v => {
+
+    const p = parse(v)
+    if(!p || !p.data) return false
+
+    const d = new Date(p.data)
+
+    return d >= mes.inicio && d <= mes.fim
+  })
+
+
+  
 
 const dadosMes = process(dadosMesTratado, mes.inicio, mes.fim)
 
@@ -1088,20 +1100,9 @@ function abrirPopup(emp){
       </div>
     `).join("")
 
+  overlay.style.display = "flex"
   overlay.classList.add("active")
 }
-
-document.addEventListener("click",(e)=>{
-  const overlay = document.getElementById("popupOverlay")
-  const box = document.getElementById("popupBox")
-
-  if(
-    overlay.classList.contains("active") &&
-    !box.contains(e.target)
-  ){
-    overlay.classList.remove("active")
-  }
-})
 
 
 
