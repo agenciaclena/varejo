@@ -265,47 +265,72 @@ button:hover{
 /* ================= TV (TELA GRANDE) ================= */
 @media (min-width: 1600px){
 
-  /* 🔥 reduz tudo proporcionalmente */
-  html{
-    transform: scale(0.55);
-    transform-origin: top left;
-    width: 182%;
+  /* 🔥 limpa a tela */
+  header,
+  .controls,
+  #periodo,
+  canvas{
+    display:none;
   }
 
-  /* 🔥 força 6 colunas REAL */
-  .grid{
-    display:grid;
-    grid-template-columns: repeat(6, 1fr) !important;
+  body{
+    background:#0b1220;
+    overflow:hidden;
+  }
+
+  /* 🔥 KPIs menores */
+  #kpis{
+    grid-template-columns: repeat(3, 1fr);
     gap:8px;
     padding:8px;
   }
 
-  /* 🔥 reduz tudo dentro dos cards */
+  .kpi{
+    padding:8px;
+  }
+
+  .kpi .value{
+    font-size:16px;
+  }
+
+  /* 🔥 GRID PRINCIPAL */
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap:6px;
+    padding:8px;
+    height: calc(100vh - 100px);
+  }
+
+  /* 🔥 CARD TOTALMENTE AJUSTADO */
   .card{
-    padding:10px;
-    font-size:11px;
+    padding:8px;
+    font-size:10px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+
+  .empresa{
+    font-size:10px;
   }
 
   .valor{
     font-size:16px;
   }
 
-  .empresa{
-    font-size:11px;
-  }
-
   .item{
-    font-size:10px;
-  }
-
-  .bola{
-    width:40px;
-    height:40px;
-    font-size:10px;
+    font-size:9px;
   }
 
   .metas{
-    gap:8px;
+    gap:4px;
+  }
+
+  .bola{
+    width:32px;
+    height:32px;
+    font-size:9px;
   }
 
 }
