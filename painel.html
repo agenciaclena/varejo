@@ -299,6 +299,7 @@ button:hover{
 
 <body>
 
+<div id="statusDot" class="status-dot"></div>
 <header>
   <div>PAINEL DV</div>
   <div id="status"></div>
@@ -322,10 +323,6 @@ button:hover{
 <!-- GRID -->
 <div id="grid" class="grid"></div>
 
-<!-- GRÁFICO -->
-<div style="padding:20px">
-  <canvas id="grafico"></canvas>
-</div>
 
 
 <script>
@@ -719,24 +716,6 @@ const pctOuro = Math.min((dMes.total / meta.ouro) * 100, 100)
 
 // ================= GRAFICO =================
 let chart
-function renderChart(d){
-
-  const labels = Object.keys(d)
-  const values = labels.map(e=>d[e].total)
-
-  if(chart) chart.destroy()
-
-  chart = new Chart(grafico,{
-    type:"bar",
-    data:{
-      labels,
-      datasets:[{
-        label:"Faturamento",
-        data:values
-      }]
-    }
-  })
-}
 
 
 
@@ -786,10 +765,14 @@ document.getElementById("statusDot").classList.add("loading")
       .lte("data", fimISO)
       .range(from, from + step - 1)
 
-    if(error){
-      console.error("❌ ERRO SUPABASE:", error)
-      break
-    }
+if(error){
+  console.error("❌ ERRO SUPABASE:", error)
+
+  document.getElementById("statusDot").style.background = "#ef4444"
+  document.getElementById("statusDot").style.boxShadow = "0 0 10px #ef4444"
+
+  return
+}
 
     if(!data || data.length === 0) break
 
@@ -857,8 +840,11 @@ setTimeout(async ()=>{
 
   document.getElementById("periodo").innerText =
     `Período: ${inicio.toLocaleString()} → ${fim.toLocaleString()}`
-document.getElementById("statusDot").classList.remove("loading")
-}
+const dot = document.getElementById("statusDot")
+
+dot.classList.remove("loading")
+dot.style.background = "#22c55e"
+dot.style.boxShadow = "0 0 10px #22c55e"}
 
 // ================= RELOAD =================
 function reload(){
