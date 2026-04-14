@@ -167,17 +167,33 @@ button:hover{
 }
 
 .bola{
-  width:80px;
-  height:80px;
+  width:70px;
+  height:70px;
   border-radius:50%;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:18px;
-  font-weight:800;
   position:relative;
 }
+.conteudo-bola{
+  position:relative;
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:800;
+  text-align:center;
+}
 
+.conteudo-bola small{
+  font-size:9px;
+  font-weight:600;
+  margin-top:2px;
+}
+
+    
 .bola::before{
   content:"";
   position:absolute;
@@ -657,57 +673,76 @@ function render(dados, dadosMes){
     const d = dados[emp]
     const dMes = dadosMes[emp] || { total:0 }
 
-   const card = `
+  const card = `
 <div class="card">
 
-  <!-- TOPO: LOGO + VALOR DO DIA -->
-  <div style="display:flex;align-items:center;gap:12px">
+  <!-- LINHA 1: LOGO + VALOR + METAS -->
+  <div style="
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  ">
 
-    <img src="${getLogo(emp)}" class="logo">
+    <!-- ESQUERDA -->
+    <div style="display:flex;align-items:center;gap:10px">
 
-    <div style="font-size:22px;font-weight:800;color:#16a34a">
-      ${brl(d.total)}
+      <img src="${getLogo(emp)}" class="logo">
+
+      <div style="
+        font-size:22px;
+        font-weight:800;
+        color:#16a34a;
+        white-space:nowrap;
+      ">
+        ${brl(d.total)}
+      </div>
+
     </div>
+
+    <!-- DIREITA (METAS) -->
+    ${(() => {
+
+      const meta = getMetaEmpresa(emp)
+      if(!meta) return ""
+
+      const pctPrata = Math.min((dMes.total / meta.prata) * 100, 100)
+      const pctOuro = Math.min((dMes.total / meta.ouro) * 100, 100)
+
+      return `
+        <div style="display:flex;gap:10px">
+
+          <div class="bola prata" style="--p:${pctPrata}%">
+            <div class="conteudo-bola">
+              <div>${pctPrata.toFixed(0)}%</div>
+              <small>${brl(meta.prata)}</small>
+            </div>
+          </div>
+
+          <div class="bola ouro" style="--p:${pctOuro}%">
+            <div class="conteudo-bola">
+              <div>${pctOuro.toFixed(0)}%</div>
+              <small>${brl(meta.ouro)}</small>
+            </div>
+          </div>
+
+        </div>
+      `
+    })()}
 
   </div>
 
-  <!-- METAS AO LADO DO VALOR -->
-  ${(() => {
-
-    const meta = getMetaEmpresa(emp)
-    if(!meta) return ""
-
-    const pctPrata = Math.min((dMes.total / meta.prata) * 100, 100)
-    const pctOuro = Math.min((dMes.total / meta.ouro) * 100, 100)
-
-    return `
-      <div class="metas" style="margin-top:10px">
-
-        <!-- PRATA -->
-        <div class="bola prata" style="--p:${pctPrata}%;display:flex;flex-direction:column;align-items:center;justify-content:center">
-          <span>${pctPrata.toFixed(0)}%</span>
-          <div style="font-size:10px;margin-top:2px;font-weight:600">
-            ${brl(meta.prata)}
-          </div>
-        </div>
-
-        <!-- OURO -->
-        <div class="bola ouro" style="--p:${pctOuro}%;display:flex;flex-direction:column;align-items:center;justify-content:center">
-          <span>${pctOuro.toFixed(0)}%</span>
-          <div style="font-size:10px;margin-top:2px;font-weight:600">
-            ${brl(meta.ouro)}
-          </div>
-        </div>
-
-      </div>
-    `
-  })()}
-
   <!-- VENDAS -->
-  <div style="margin-top:8px">${d.vendas} vendas</div>
+  <div style="margin-top:10px">${d.vendas} vendas</div>
 
   <!-- ALMOÇO -->
-  <div style="margin-top:6px;padding:6px;background:#f1f5f9;border-radius:6px;font-size:12px">
+  <div style="
+    margin-top:6px;
+    padding:6px;
+    background:#f1f5f9;
+    border-radius:6px;
+    font-size:12px
+  ">
     🍽️ Almoço: <b>${brl(d.almocoTotal)}</b> (${d.almocoVendas} vendas)
   </div>
 
@@ -744,8 +779,7 @@ function render(dados, dadosMes){
   }
 
 </div>
-    `
-
+`
     // 🔥 AQUI É O MAIS IMPORTANTE
     if(
       emp.includes("VILLA") ||
