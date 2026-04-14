@@ -553,7 +553,8 @@ const p = parse(v)
 if(!p || !p.data) return
 
 const d = new Date(p.data)
-const hora = d.getHours()
+d.setHours(d.getHours() - 3)
+  const hora = d.getHours()
 
 const isAlmoco = hora >= 10 && hora < 15
 
@@ -887,24 +888,25 @@ const step = 50
 // 🔥 CACHE DO MÊS
 window.dadosMesCache = {}
 
-let lastDate = null // 🔥 COLOCA ANTES DO WHILE
-
+let lastDate = null
+let lastId = null
 while(true){
 
   await new Promise(r => requestAnimationFrame(r))
 
-  let query = sb
-    .from("cupons_importados")
-    .select("empresa_id,data,raw,id")
-    .gte("data", inicioISO)
-    .lte("data", fimISO)
-    .order("data", { ascending: true })
-    .limit(step)
+let query = sb
+  .from("cupons_importados")
+  .select("empresa_id,data,raw,id")
+  .order("data", { ascending: true })
+  .order("id", { ascending: true })
+  .limit(step)
 
   // 🔥 CURSOR REAL
-  if(lastDate){
-    query = query.gt("data", lastDate)
-  }
+if(lastDate){
+  query = query.or(
+    `data.gt.${lastDate},and(data.eq.${lastDate},id.gt.${lastId})`
+  )
+}
 
   const { data, error } = await query
   if(error){
@@ -916,6 +918,12 @@ while(true){
     console.log("⛔ FIM PAGINAÇÃO")
     break
   }
+lastDate = data[data.length - 1].data
+lastId = data[data.length - 1].id
+
+
+
+  
 lastDate = data[data.length - 1].data
   console.log(`📄 PAGINA ${from} → ${from + step} | ITENS: ${data.length}`)
 
