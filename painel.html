@@ -1022,15 +1022,29 @@ document.getElementById("fim").value = formatLocal(t.fim)
 
   
 
+
+
+document.getElementById("inicio").value = formatLocal(t.inicio)
+document.getElementById("fim").value = formatLocal(t.fim)
+
+// 🔥 AQUI ENTRA O CACHE
 const cache = carregarCache()
 
 if(cache){
-  console.log("⚡ CARREGADO DO CACHE")
-  render(cache.dados || {}, cache.dadosMes || {})
+
+  const diff = Date.now() - new Date(cache.atualizadoEm).getTime()
+
+  if(diff < 1000 * 60 * 10){ // 10 minutos
+    console.log("⚡ CACHE RECENTE CARREGADO")
+    render(cache.dados || {}, cache.dadosMes || {})
+  }else{
+    console.log("⌛ CACHE EXPIRADO")
+  }
+
 }
 
-load(t.inicio,t.fim)
-  
+// 🔄 SEMPRE CARREGA DO BANCO DEPOIS
+load(t.inicio,t.fim)  
 let carregando = false
 
 setInterval(()=>{
