@@ -280,10 +280,13 @@ if(dataStr === hoje){
 
 }
 
-    const mes = dataObj.getMonth()
+const mes = dataObj.getMonth()
+const ano = dataObj.getFullYear()
 
-if(mes === mesAtual){
-
+const mesAtualNum = new Date().getMonth()
+const anoAtual = new Date().getFullYear()
+    
+if(mes === mesAtualNum && ano === anoAtual){
   if(
     status.includes("Aberto") ||
     status.includes("Liquidado") ||
