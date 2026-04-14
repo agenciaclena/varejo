@@ -265,32 +265,50 @@ button:hover{
 /* ================= TV (TELA GRANDE) ================= */
 @media (min-width: 1600px){
 
-  body{
-    zoom: 0.60; /* 🔥 mais forte */
+  /* 🔥 reduz tudo proporcionalmente */
+  html{
+    transform: scale(0.55);
+    transform-origin: top left;
+    width: 182%;
   }
 
+  /* 🔥 força 6 colunas REAL */
   .grid{
-        grid-template-columns: repeat(6, 1fr) !important; /* 🔥 FORÇA */
-    gap:10px; /* 🔥 reduz espaço */
-    padding:10px;
+    display:grid;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap:8px;
+    padding:8px;
   }
 
+  /* 🔥 reduz tudo dentro dos cards */
   .card{
-    padding:12px; /* 🔥 diminui card */
+    padding:10px;
+    font-size:11px;
   }
 
   .valor{
-    font-size:20px; /* 🔥 diminui valor grande */
+    font-size:16px;
+  }
+
+  .empresa{
+    font-size:11px;
+  }
+
+  .item{
+    font-size:10px;
   }
 
   .bola{
-    width:50px;
-    height:50px;
-    font-size:12px;
+    width:40px;
+    height:40px;
+    font-size:10px;
+  }
+
+  .metas{
+    gap:8px;
   }
 
 }
-
 
 
   
