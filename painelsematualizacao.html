@@ -609,7 +609,7 @@ function getMetaEmpresa(nome){
 
   
 // ================= RENDER =================
-function render(dados, dadosMes){
+function render(dados){
   renderKPIs(dados)
   const grid = document.getElementById("grid")
   grid.innerHTML=""
@@ -617,40 +617,12 @@ function render(dados, dadosMes){
   Object.keys(dados).forEach(emp=>{
 
 const d = dados[emp]
-const dMes = dadosMes[emp] || { total:0 }
     grid.innerHTML += `
       <div class="card">
         <div class="empresa">${emp}</div>
 <div class="valor">${brl(d.total)}</div>
 
-${(() => {
 
-const meta = getMetaEmpresa(emp)
-  
-  if(!meta) return ""
-
-const pctPrata = Math.min((dMes.total / meta.prata) * 100, 100)
-const pctOuro = Math.min((dMes.total / meta.ouro) * 100, 100)
-
-  return `
-    <div class="metas">
-
-      <div class="bola prata" style="--p:${pctPrata}%">
-        <span>${pctPrata.toFixed(0)}%</span>
-      </div>
-
-      <div class="bola ouro" style="--p:${pctOuro}%">
-        <span>${pctOuro.toFixed(0)}%</span>
-      </div>
-
-    </div>
-
-    <div style="font-size:11px;margin-top:8px;color:#64748b">
-      PRATA: ${brl(meta.prata)}<br>
-      OURO: ${brl(meta.ouro)}
-    </div>
-  `
-})()}
 
 <div>${d.vendas} vendas</div>
 
@@ -659,30 +631,7 @@ const pctOuro = Math.min((dMes.total / meta.ouro) * 100, 100)
 </div>
 
 
-<div style="
-  margin-top:8px;
-  padding:10px;
-  border-radius:10px;
-  background:linear-gradient(135deg,#0f172a,#1e293b);
-  color:#fff;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:13px;
-  font-weight:600;
-">
 
-  <span style="opacity:0.7">📊 Mês</span>
-
-  <span style="
-    font-size:15px;
-    font-weight:800;
-    color:#22c55e;
-  ">
-    ${brl(dMes.total)}
-  </span>
-
-</div>
 
 
 
@@ -797,14 +746,9 @@ const { data, error } = await sb
 
   console.log("📊 TOTAL CARREGADO:", all.length)
 
-// 🔵 dados do filtro (mantém igual)
 const dados = process(all, inicio, fim)
 
-// 🟡 dados do mês (NOVO)
-const mes = mesOperacional()
-
-// 🔵 PRIMEIRO RENDER (RÁPIDO)
-render(dados, {})
+render(dados)
 
 
 
