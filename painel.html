@@ -116,7 +116,7 @@ button:hover{
 /* ================= GRID ================= */
 .grid{
   display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
+  grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); /* 🔥 menor */
   gap:20px;
   padding:20px;
 }
@@ -270,7 +270,7 @@ button:hover{
   }
 
   .grid{
-    grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(6, 1fr) !important; /* 🔥 FORÇA */
     gap:10px; /* 🔥 reduz espaço */
     padding:10px;
   }
