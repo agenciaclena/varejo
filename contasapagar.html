@@ -280,11 +280,8 @@ if(dataStr === hoje){
 
 }
 
-const comp = v.competencia || ""
-const [anoComp, mesComp] = comp.split("-").map(Number)
-
-const mes = mesComp - 1
-const ano = anoComp
+const mes = dataObj.getMonth()
+const ano = dataObj.getFullYear()
 
 const mesAtualNum = new Date().getMonth()
 const anoAtual = new Date().getFullYear()
