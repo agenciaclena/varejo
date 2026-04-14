@@ -229,7 +229,7 @@ hojePago:0,
         valorAberto:0,
 valorPago:0,
         categorias:{},
-        pagamentos:{}
+        pagamentosHoje:{}
       }
     }
 
@@ -290,9 +290,17 @@ else if(
       d.categorias[nome] = (d.categorias[nome] || 0) + val
     })
 
-    const pagamento = v.meio_pagamento || "OUTROS"
-    d.pagamentos[pagamento] =
-      (d.pagamentos[pagamento] || 0) + valor
+if(
+  dataStr === hoje &&
+  status.includes("Aberto")
+){
+
+  const pagamento = v.meio_pagamento || "OUTROS"
+
+  d.pagamentosHoje[pagamento] =
+    (d.pagamentosHoje[pagamento] || 0) + valor
+
+}
 
   })
 
@@ -381,7 +389,7 @@ function render(dados){
         <div class="section">
           <b>Formas de Pagamento</b>
           ${
-            Object.entries(d.pagamentos)
+            Object.entries(d.pagamentosHoje)
             .sort((a,b)=>b[1]-a[1])
             .slice(0,5)
             .map(p=>`<div class="row">${p[0]} <b>${brl(p[1])}</b></div>`)
