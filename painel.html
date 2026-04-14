@@ -795,64 +795,31 @@ if(error){
 
   console.log("📊 TOTAL CARREGADO:", all.length)
 console.log("📦 DADOS BRUTOS:", all)
+
+
+  
 // 🔵 dados do filtro (mantém igual)
-const dados = process(all, inicio, fim)
-console.log("🧠 DADOS PROCESSADOS:", dados)
-// 🟡 dados do mês (NOVO)
+// 🔥 pega período do mês
 const mes = mesOperacional()
 
-// 🔵 PRIMEIRO RENDER (RÁPIDO)
-render(dados, {})
+// 🔥 usa OS MESMOS dados já carregados
+const dadosMes = process(all, mes.inicio, mes.fim)
 
-// 🟡 CARREGAR META DEPOIS (UMA ÚNICA VEZ)
-setTimeout(async ()=>{
-console.log("📦 INICIANDO CARGA DO MÊS")
-  const mes = mesOperacional()
+// 🔥 dados do filtro (dia)
+const dadosDia = process(all, inicio, fim)
 
-  let allMes = []
-  let fromMes = 0
-  const stepMes = 300
+// 🔥 render único (rápido e correto)
+render(dadosDia, dadosMes)
 
-  while(true){
-    const { data, error } = await sb
-      .from("cupons_importados")
-      .select("empresa_id,data,raw,id")
-      .gte("data", mes.inicio.toISOString())
-      .lte("data", mes.fim.toISOString())
-      .range(fromMes, fromMes + stepMes - 1)
-console.log(`📄 Página MÊS ${fromMes/stepMes + 1} | Itens: ${data?.length || 0}`)
+// ✅ FINALIZA LOADING AQUI (OBRIGATÓRIO)
+dot.classList.remove("loading")
+dot.style.background = "#22c55e"
+dot.style.boxShadow = "0 0 10px #22c55e"
 
-    if(error){
-      console.error("❌ ERRO MÊS:", error)
-
-      dot.classList.remove("loading")
-      dot.style.background = "#ef4444"
-      dot.style.boxShadow = "0 0 10px #ef4444"
-      return
-    }
-
-    if(!data || data.length === 0) break
-
-    allMes = allMes.concat(data)
-
-    if(data.length < stepMes) break
-
-    fromMes += stepMes
-  }
-
-  const dadosMes = process(allMes, mes.inicio, mes.fim)
-console.log("🧠 DADOS MÊS:", dadosMes)
-  render(dados, dadosMes)
-
-  // ✅ FINAL AGORA É AQUI
-  dot.classList.remove("loading")
-  dot.style.background = "#22c55e"
-  dot.style.boxShadow = "0 0 10px #22c55e"
-
-},100)
 console.log("✅ FINALIZADO LOAD")
-  document.getElementById("periodo").innerText =
-    `Período: ${inicio.toLocaleString()} → ${fim.toLocaleString()}`
+
+document.getElementById("periodo").innerText =
+  `Período: ${inicio.toLocaleString()} → ${fim.toLocaleString()}`
 
 
 // ================= RELOAD =================
