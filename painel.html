@@ -891,7 +891,7 @@ while(true){
   // 🔥 RENDER PROGRESSIVO
   const parcial = process(dadosParciais, inicio, fim)
 
-render(parcial, {})
+render(parcial, window.dadosMesCache || {})
   if(data.length < step) break
 
   from += step
