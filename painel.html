@@ -508,7 +508,7 @@ function turno(){
 
 // ================= PARSE =================
 function parse(v){
-const raw = lerJSONSeguro(v.raw)
+  const raw = v.raw
 if(!raw) return null
   // 🔥 PRIORIDADE 1: data completa do cupom
   let dataHora = raw?.dataHoraFechamentoCupom
@@ -540,8 +540,8 @@ function process(data, inicio, fim){
 
   data.forEach(v=>{
 
-const raw = v.raw
-if(!raw) return
+const raw = typeof v.raw === "object" ? v.raw : lerJSONSeguro(v.raw)
+  if(!raw) return
   
 const id = raw?.id
     // 🔥 BLOQUEIO DE DUPLICADOS
@@ -896,7 +896,7 @@ while(true){
   // 🔥 RENDER PROGRESSIVO
   const parcial = process(dadosParciais, inicio, fim)
 
-render(parcial, {})
+render(parcial, window.dadosMesCache || {})
   if(data.length < step) break
 
   from += step
@@ -1106,7 +1106,12 @@ function abrirPopup(emp){
 
 
 
-
+document.getElementById("popupOverlay").addEventListener("click",(e)=>{
+  if(e.target.id === "popupOverlay"){
+    e.currentTarget.style.display = "none"
+    e.currentTarget.classList.remove("active")
+  }
+})
 
 
 
