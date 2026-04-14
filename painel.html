@@ -864,7 +864,7 @@ window.dadosMesCache = {}
 
 while(true){
 
-  await new Promise(r => requestAnimationFrame(r)) // 🔥 não trava tela
+  await new Promise(r => requestAnimationFrame(r))
 
   const { data, error } = await sb
     .from("cupons_importados")
@@ -874,13 +874,17 @@ while(true){
     .range(from, from + step - 1)
 
   if(error){
-    console.error("❌ ERRO:", error)
+    console.error("❌ ERRO PAGINA:", error)
     break
   }
 
-  if(!data || data.length === 0) break
+  if(!data || data.length === 0){
+    console.log("⛔ FIM PAGINAÇÃO")
+    break
+  }
 
-  // 🔥 AQUI É O PONTO PRINCIPAL (CORREÇÃO)
+  console.log(`📄 PAGINA ${from} → ${from + step} | ITENS: ${data.length}`)
+
   const novos = data.map(v => ({
     ...v,
     raw: lerJSONSeguro(v.raw)
@@ -888,15 +892,17 @@ while(true){
 
   dadosParciais = dadosParciais.concat(novos)
 
-  // 🔥 RENDER PROGRESSIVO
   const parcial = process(dadosParciais, inicio, fim)
 
-render(parcial, window.dadosMesCache || {})
-  if(data.length < step) break
+  render(parcial, window.dadosMesCache || {})
+
+  if(data.length < step){
+    console.log("🏁 ÚLTIMA PÁGINA")
+    break
+  }
 
   from += step
 }
-
 // 🔥 FINAL
 console.log("📊 TOTAL CARREGADO:", dadosParciais.length)
 
@@ -916,18 +922,26 @@ const { data, error } = await sb
   .lte("data", mes.fim.toISOString())
   .range(fromMes, fromMes + stepMes - 1)
 
-  if(error){
-    console.error("ERRO MES:", error)
-    break
-  }
+if(error){
+  console.error("❌ ERRO MES:", error)
+  break
+}
 
-  if(!data || data.length === 0) break
+if(!data || data.length === 0){
+  console.log("⛔ FIM PAGINAÇÃO MÊS")
+  break
+}
 
-  dadosMesBruto = dadosMesBruto.concat(data)
+console.log(`📊 MÊS PAGINA ${fromMes} → ${fromMes + stepMes} | ${data.length}`)
 
-  if(data.length < stepMes) break
+dadosMesBruto = dadosMesBruto.concat(data)
 
-  fromMes += stepMes
+if(data.length < stepMes){
+  console.log("🏁 ÚLTIMA PÁGINA MÊS")
+  break
+}
+
+fromMes += stepMes
 }
 
 const dadosMesTratado = (dadosMesBruto || [])
