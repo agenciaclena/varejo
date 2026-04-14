@@ -1130,15 +1130,17 @@ function abrirPopup(emp){
 const popupEl = document.getElementById("popupOverlay")
 
 if(popupEl){
-  popupEl.addEventListener("click",(e)=>{
-    if(e.target.id === "popupOverlay"){
-      popupEl.style.display = "none"
-      popupEl.classList.remove("active")
-    }
-  })
-}
-  
+popupEl.addEventListener("click",(e)=>{
 
+  // 🔥 SE CLICOU FORA DA CAIXA
+  if(!document.getElementById("popupBox").contains(e.target)){
+    
+    popupEl.style.display = "none"
+    popupEl.classList.remove("active")
+
+  }
+
+})
 
 
 
