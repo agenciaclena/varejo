@@ -772,8 +772,6 @@ dot.style.boxShadow = "0 0 10px #f59e0b"
 if(error){
   console.error("❌ ERRO SUPABASE:", error)
 
-  const dot = document.getElementById("statusDot")
-
   dot.classList.remove("loading")
   dot.style.background = "#ef4444"
   dot.style.boxShadow = "0 0 10px #ef4444"
@@ -819,17 +817,14 @@ setTimeout(async ()=>{
       .lte("data", mes.fim.toISOString())
       .range(fromMes, fromMes + stepMes - 1)
 
-if(error){
-  console.error("❌ ERRO MÊS:", error)
+    if(error){
+      console.error("❌ ERRO MÊS:", error)
 
-  const dot = document.getElementById("statusDot")
-
-  dot.classList.remove("loading")
-  dot.style.background = "#ef4444"
-  dot.style.boxShadow = "0 0 10px #ef4444"
-
-  break
-}
+      dot.classList.remove("loading")
+      dot.style.background = "#ef4444"
+      dot.style.boxShadow = "0 0 10px #ef4444"
+      return
+    }
 
     if(!data || data.length === 0) break
 
@@ -840,21 +835,19 @@ if(error){
     fromMes += stepMes
   }
 
-  console.log("📊 TOTAL MÊS:", allMes.length)
-
   const dadosMes = process(allMes, mes.inicio, mes.fim)
 
-  // 🔥 RE-RENDER COM META
   render(dados, dadosMes)
+
+  // ✅ FINAL AGORA É AQUI
+  dot.classList.remove("loading")
+  dot.style.background = "#22c55e"
+  dot.style.boxShadow = "0 0 10px #22c55e"
 
 },100)
 
-  document.getElementById("status").innerText =
-    "Atualizado " + new Date().toLocaleTimeString()
-
   document.getElementById("periodo").innerText =
     `Período: ${inicio.toLocaleString()} → ${fim.toLocaleString()}`
-const dot = document.getElementById("statusDot")
 
 dot.classList.remove("loading")
 dot.style.background = "#22c55e"
