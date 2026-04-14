@@ -91,8 +91,10 @@ const url = `${baseURL}?pagina=${pagina}&count=${count}&q=data=ge=${dataInicio};
 
       for(const cupom of items){
 
-        if(ids.has(cupom.id)) continue
-        ids.add(cupom.id)
+const unique_id = empresa + "_" + cupom.id
+
+if(ids.has(unique_id)) continue
+ids.add(unique_id)
 
         const unique_id = empresa + "_" + cupom.id
 
@@ -119,7 +121,7 @@ const url = `${baseURL}?pagina=${pagina}&count=${count}&q=data=ge=${dataInicio};
               cupom_unique_id: unique_id,
               finalizadora_id: String(f.finalizadoraId),
               finalizadora_nome: f.descricao,
-              valor: Number(f.valor || 0)
+              const valor = Number(f.valor || 0) - Number(f.troco || 0)
             })
           })
         }
@@ -152,7 +154,7 @@ const url = `${baseURL}?pagina=${pagina}&count=${count}&q=data=ge=${dataInicio};
         `📊 Total: ${totalGeral}`
       )
 
-      if(items.length < count){
+        if(items.length === 0){
         console.log("🏁 ÚLTIMA PÁGINA")
         break
       }
