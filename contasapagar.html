@@ -218,8 +218,10 @@ function process(data){
 
     if(!result[empresa]){
       result[empresa] = {
-        hoje:0,
-        hojeQtd:0,
+hoje:0,
+hojeQtd:0,
+hojeAberto:0,
+hojePago:0,
         mes:0,
         mesAnterior:0,
         aberto:0,
@@ -233,9 +235,21 @@ valorPago:0,
 
     const d = result[empresa]
 
-if(dataStr === hoje && status.includes("Aberto")){
+if(dataStr === hoje){
+
   d.hoje += valor
   d.hojeQtd++
+
+  if(status.includes("Aberto")){
+    d.hojeAberto += valor
+  }
+  else if(
+    status.includes("Liquidado") ||
+    status.includes("Pago")
+  ){
+    d.hojePago += valor
+  }
+
 }
 
     const mes = dataObj.getMonth()
@@ -309,8 +323,17 @@ function render(dados){
 
         <div class="section">
           <span class="badge blue">HOJE</span>
-          <div class="row">Total: <b>${brl(d.hoje)}</b></div>
-          <div class="row">Qtd: ${d.hojeQtd}</div>
+<div class="row">Total: <b>${brl(d.hoje)}</b></div>
+
+<div class="row">
+  Pago: <b style="color:#16a34a">${brl(d.hojePago)}</b>
+</div>
+
+<div class="row">
+  Aberto: <b style="color:#dc2626">${brl(d.hojeAberto)}</b>
+</div>
+
+<div class="row">Qtd: ${d.hojeQtd}</div>
         </div>
 
         <div class="section">
