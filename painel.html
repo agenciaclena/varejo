@@ -657,77 +657,93 @@ function render(dados, dadosMes){
     const d = dados[emp]
     const dMes = dadosMes[emp] || { total:0 }
 
-    const card = `
-      <div class="card">
+   const card = `
+<div class="card">
 
-        <div class="empresa">
-          <img src="${getLogo(emp)}" class="logo">
+  <!-- TOPO: LOGO + VALOR DO DIA -->
+  <div style="display:flex;align-items:center;gap:12px">
+
+    <img src="${getLogo(emp)}" class="logo">
+
+    <div style="font-size:22px;font-weight:800;color:#16a34a">
+      ${brl(d.total)}
+    </div>
+
+  </div>
+
+  <!-- METAS AO LADO DO VALOR -->
+  ${(() => {
+
+    const meta = getMetaEmpresa(emp)
+    if(!meta) return ""
+
+    const pctPrata = Math.min((dMes.total / meta.prata) * 100, 100)
+    const pctOuro = Math.min((dMes.total / meta.ouro) * 100, 100)
+
+    return `
+      <div class="metas" style="margin-top:10px">
+
+        <!-- PRATA -->
+        <div class="bola prata" style="--p:${pctPrata}%;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <span>${pctPrata.toFixed(0)}%</span>
+          <div style="font-size:10px;margin-top:2px;font-weight:600">
+            ${brl(meta.prata)}
+          </div>
         </div>
 
-        <div class="valor">${brl(d.total)}</div>
-
-        ${(() => {
-
-          const meta = getMetaEmpresa(emp)
-          if(!meta) return ""
-
-          const pctPrata = Math.min((dMes.total / meta.prata) * 100, 100)
-          const pctOuro = Math.min((dMes.total / meta.ouro) * 100, 100)
-
-          return `
-            <div class="metas">
-              <div class="bola prata" style="--p:${pctPrata}%">
-                <span>${pctPrata.toFixed(0)}%</span>
-              </div>
-
-              <div class="bola ouro" style="--p:${pctOuro}%">
-                <span>${pctOuro.toFixed(0)}%</span>
-              </div>
-            </div>
-
-            <div style="font-size:11px;margin-top:8px;color:#64748b">
-              PRATA: ${brl(meta.prata)}<br>
-              OURO: ${brl(meta.ouro)}
-            </div>
-          `
-        })()}
-
-        <div>${d.vendas} vendas</div>
-
-        <div style="margin-top:6px;padding:6px;background:#f1f5f9;border-radius:6px;font-size:12px">
-          🍽️ Almoço: <b>${brl(d.almocoTotal)}</b> (${d.almocoVendas} vendas)
+        <!-- OURO -->
+        <div class="bola ouro" style="--p:${pctOuro}%;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <span>${pctOuro.toFixed(0)}%</span>
+          <div style="font-size:10px;margin-top:2px;font-weight:600">
+            ${brl(meta.ouro)}
+          </div>
         </div>
-
-        <div style="
-          margin-top:8px;
-          padding:10px;
-          border-radius:10px;
-          background:linear-gradient(135deg,#0f172a,#1e293b);
-          color:#fff;
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          font-size:13px;
-          font-weight:600;
-        ">
-          <span style="opacity:0.7">📊 Mês</span>
-          <span style="font-size:15px;font-weight:800;color:#22c55e;">
-            ${brl(dMes.total)}
-          </span>
-        </div>
-
-        <div style="color:red;font-size:12px">
-          ❌ ${d.cancelados} cancelados (${brl(d.valorCancelado)})
-        </div>
-
-        ${
-          Object.entries(d.finais)
-          .sort((a,b)=>b[1]-a[1])
-          .map(f=>`<div class="item">${f[0]} <b>${brl(f[1])}</b></div>`)
-          .join("")
-        }
 
       </div>
+    `
+  })()}
+
+  <!-- VENDAS -->
+  <div style="margin-top:8px">${d.vendas} vendas</div>
+
+  <!-- ALMOÇO -->
+  <div style="margin-top:6px;padding:6px;background:#f1f5f9;border-radius:6px;font-size:12px">
+    🍽️ Almoço: <b>${brl(d.almocoTotal)}</b> (${d.almocoVendas} vendas)
+  </div>
+
+  <!-- MÊS -->
+  <div style="
+    margin-top:8px;
+    padding:10px;
+    border-radius:10px;
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:#fff;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    font-weight:600;
+  ">
+    <span style="opacity:0.7">📊 Mês</span>
+    <span style="font-size:15px;font-weight:800;color:#22c55e;">
+      ${brl(dMes.total)}
+    </span>
+  </div>
+
+  <!-- CANCELADOS -->
+  <div style="color:red;font-size:12px">
+    ❌ ${d.cancelados} cancelados (${brl(d.valorCancelado)})
+  </div>
+
+  <!-- FINAIS -->
+  ${
+    Object.entries(d.finais)
+    .sort((a,b)=>b[1]-a[1])
+    .map(f=>`<div class="item">${f[0]} <b>${brl(f[1])}</b></div>`)
+    .join("")
+  }
+
+</div>
     `
 
     // 🔥 AQUI É O MAIS IMPORTANTE
