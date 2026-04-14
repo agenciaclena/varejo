@@ -44,7 +44,7 @@ module.exports = async function handler(req, res){
     console.log(`🏢 Empresa: ${empresa}`)
     console.log(`📅 Período: ${dataInicio} → ${dataFim}`)
 
-    const count = 500
+    const count = 200
     let pagina = 1
     let totalGeral = 0
     let totalPagamentos = 0
