@@ -291,7 +291,7 @@ button:hover{
 <div class="controls">
 <input type="date" id="inicio">
 <input type="date" id="fim">
-  <button onclick="reload()">Aplicar</button>
+  <button onclick="load()">Aplicar</button>
 </div>
 
 <div id="periodo" style="
@@ -464,7 +464,8 @@ const result = {}
 data.forEach(r=>{
 
 const emp = r.empresa
-const nomeFinal = MAPA[emp]?.[r.finalizadora_id] || "OUTROS"
+const idFinal = Number(r.finalizadora_id || 0)
+const nomeFinal = MAPA[emp]?.[idFinal] || `ID ${idFinal}`
 
 if(!result[emp]){
   result[emp] = {
