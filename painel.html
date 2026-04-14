@@ -882,23 +882,31 @@ const fimISO = fim.toISOString()
 
 let dadosParciais = []
 let from = 0
-const step = 300
+const step = 50
 
 // 🔥 CACHE DO MÊS
 window.dadosMesCache = {}
+
+let lastDate = null // 🔥 COLOCA ANTES DO WHILE
 
 while(true){
 
   await new Promise(r => requestAnimationFrame(r))
 
-  const { data, error } = await sb
+  let query = sb
     .from("cupons_importados")
-.select("empresa_id,data,raw,id")
-.order("data", { ascending: true })
+    .select("empresa_id,data,raw,id")
     .gte("data", inicioISO)
     .lte("data", fimISO)
-    .range(from, from + step - 1)
+    .order("data", { ascending: true })
+    .limit(step)
 
+  // 🔥 CURSOR REAL
+  if(lastDate){
+    query = query.gt("data", lastDate)
+  }
+
+  const { data, error } = await query
   if(error){
     console.error("❌ ERRO PAGINA:", error)
     break
@@ -908,7 +916,7 @@ while(true){
     console.log("⛔ FIM PAGINAÇÃO")
     break
   }
-
+lastDate = data[data.length - 1].data
   console.log(`📄 PAGINA ${from} → ${from + step} | ITENS: ${data.length}`)
 
   const novos = data.map(v => ({
