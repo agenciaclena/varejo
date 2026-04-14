@@ -823,19 +823,18 @@ function mesOperacional(){
 
   const now = new Date()
 
+  // 🔥 último dia do mês anterior às 04:00
   const inicio = new Date(
     now.getFullYear(),
     now.getMonth(),
-    1,
-    5,0,0
+    0, // dia 0 = último dia do mês anterior
+    4,0,0
   )
 
   const fim = new Date()
 
   return { inicio, fim }
 }
-
-
 
 
 
@@ -911,8 +910,7 @@ const mes = mesOperacional()
 const { data: dadosMesBruto } = await sb
   .from("cupons_importados")
   .select("empresa_id,data,raw,id")
-  .gte("data", mes.inicio.toISOString())
-  .lte("data", mes.fim.toISOString())
+.select("empresa_id,data,raw,id")
 
 const dadosMesTratado = (dadosMesBruto || [])
   .map(v => ({
