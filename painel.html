@@ -897,6 +897,8 @@ while(true){
 let query = sb
   .from("cupons_importados")
   .select("empresa_id,data,raw,id")
+  .gte("data", inicioISO)
+  .lte("data", fimISO)
   .order("data", { ascending: true })
   .order("id", { ascending: true })
   .limit(step)
