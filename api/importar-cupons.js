@@ -1,10 +1,12 @@
-const { createClient } = require("@supabase/supabase-js")
+import { createClient } from "@supabase/supabase-js"
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
 
-module.exports = async function handler(req, res){
+export default async function handler(req, res){
+
   // 🔥 STREAM REALTIME
   res.writeHead(200, {
     "Content-Type": "text/plain; charset=utf-8",
@@ -152,37 +154,34 @@ module.exports = async function handler(req, res){
 
         log(`🧾 Cupom ${cupom.id} | R$ ${cupom.valorTotal}`)
 
-const valor_total = Number(cupom.valorTotal || 0)
-const cancelado = !!cupom.cancelada
+        const valor_total = Number(cupom.valorTotal || 0)
+        const cancelado = !!cupom.cancelada
 
-let valor_liquido = 0
-let finalizadoraPrincipal = null
+        inserts.push({
+          unique_id,
+          empresa,
+          empresa_id: empresa,
+          venda_id: cupom.id,
+          data: cupom.data,
+          valor_total,
+          valor_liquido: valor_total,
+          finalizadora_principal: cupom.finalizacoes?.[0]?.descricao || null,
+          cancelado,
+          raw: cupom
+        })
 
-if(Array.isArray(cupom.finalizacoes) && cupom.finalizacoes.length > 0){
+        if(Array.isArray(cupom.finalizacoes)){
+          cupom.finalizacoes.forEach(f=>{
+            pagamentos.push({
+              cupom_unique_id: unique_id,
+              finalizadora_id: String(f.finalizadoraId),
+              finalizadora_nome: f.descricao,
+              valor: Number(f.valor || 0) - Number(f.troco || 0)
+            })
+          })
+        }
+      }
 
-  valor_liquido = cupom.finalizacoes.reduce((total,f)=>{
-    return total + (Number(f.valor || 0) - Number(f.troco || 0))
-  },0)
-
-  const maior = cupom.finalizacoes.reduce((a,b)=>
-    (Number(a.valor||0) > Number(b.valor||0) ? a : b)
-  )
-
-  finalizadoraPrincipal = Number(maior.finalizadoraId || 0)
-}
-
-inserts.push({
-  unique_id,
-  empresa,
-  empresa_id: empresa,
-  venda_id: cupom.id,
-  data: cupom.data,
-  valor_total,
-  valor_liquido,
-  finalizadora_principal: finalizadoraPrincipal,
-  cancelado,
-  raw: cupom
-})
       // ================= INSERT CUPONS =================
       if(inserts.length > 0){
 
