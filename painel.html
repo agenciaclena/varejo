@@ -494,16 +494,22 @@ const brl = v => Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BR
 
 // ================= TURNO =================
 function turno(){
-  const now = new Date()
 
-  const inicio = new Date(now)
+  const agora = new Date()
+
+  const inicio = new Date(agora)
   inicio.setHours(5,0,0,0)
 
-  const fim = new Date(inicio)
-  fim.setDate(fim.getDate()+1)
-  fim.setHours(4,0,0,0)
+  // se ainda não chegou 05:00 → volta 1 dia
+  if(agora.getHours() < 5){
+    inicio.setDate(inicio.getDate() - 1)
+  }
 
-  return {inicio,fim}
+  const fim = new Date(inicio)
+  fim.setDate(fim.getDate() + 1)
+  fim.setHours(4,59,59,999)
+
+  return { inicio, fim }
 }
 
 // ================= PARSE =================
@@ -549,6 +555,8 @@ const isAlmoco = hora >= 10 && hora < 15
     
 // NÃO mexe no horário aqui
 const dataVenda = new Date(`${v.data}T${v.hora || "00:00:00"}`)
+
+// 🔥 COMPARAÇÃO DIRETA (SEM ISO, SEM TIMEZONE)
 if(dataVenda < inicio || dataVenda > fim) return
   
     
