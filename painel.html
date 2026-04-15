@@ -528,8 +528,12 @@ function process(data, inicio, fim){
 
   const result = {}
 
-  data.forEach(v=>{
+data.forEach(v=>{
 
+  const dataVenda = new Date(`${v.data}T${v.hora || "00:00:00"}`)
+
+  if(dataVenda < inicio || dataVenda > fim) return
+  
 const p = parse(v)
 if(!p) return
 
@@ -933,7 +937,6 @@ dadosParciais = [...dadosParciais, ...novos]
   const parcial = process(dadosParciais, new Date(), new Date())
 
 salvarCache(parcial, window.dadosMesCache || {})
-  salvarCache(parcial, window.dadosMesCache || {})
   if(data.length < step){
     console.log("🏁 ÚLTIMA PÁGINA")
     break
@@ -990,7 +993,6 @@ const mesNumero = dataSelecionada.split("-")[1]
 
 // 🔥 INICIO DO MÊS
 const inicioMes = `${ano}-${mesNumero}-01`
-
 // 🔥 FIM DO MÊS (dinâmico)
 const fimMes = new Date(ano, Number(mesNumero), 0)
   .toISOString()
