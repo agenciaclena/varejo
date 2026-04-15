@@ -892,13 +892,15 @@ while(true){
 
 let query = sb
 const dataSelecionada = document.getElementById("data").value
-.from("resumo_vendas")
-.select("*")
-.eq("data", dataSelecionada)
-.eq("cancelado", false)
-.order("data", { ascending: true })
-.order("id", { ascending: true })
-.limit(step)
+
+let query = sb
+  .from("resumo_vendas")
+  .select("*")
+  .eq("data", dataSelecionada)
+  .eq("cancelado", false)
+  .order("data", { ascending: true })
+  .order("id", { ascending: true })
+  .limit(step)
 
   // 🔥 CURSOR REAL
 if(lastDate){
@@ -930,7 +932,7 @@ lastId = data[data.length - 1].id
 
 const novos = data
 dadosParciais = [...dadosParciais, ...novos]
-  const parcial = process(dadosParciais, inicio, fim)
+  const parcial = process(dadosParciais, new Date(), new Date())
 
 salvarCache(parcial, window.dadosMesCache || {})
   salvarCache(parcial, window.dadosMesCache || {})
@@ -1081,7 +1083,7 @@ salvarCache(
   dadosMes
 )
 // 🔥 RENDER FINAL COMPLETO
-const finalDados = process(dadosParciais, inicio, fim)
+const finalDados = process(dadosParciais, new Date(), new Date())
 
 console.log("📊 FINAL FILTRADO:", finalDados)
 
