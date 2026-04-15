@@ -994,8 +994,8 @@ if(cache?.dadosMes && cache?.atualizadoEm){
 
 
   
-let dadosMesBruto = []
-let fromMes = 0
+let dadosMesBruto = cache?.dadosMesBruto || []
+  let fromMes = 0
 const stepMes = 300
 
 // 🔥 VERIFICA CACHE (30 MIN)
@@ -1109,15 +1109,11 @@ const { data, error } = await sb
 }
 
 const dadosMesTratado = (dadosMesBruto || [])
-  .map(v => ({
-    ...v,
-    raw: lerJSONSeguro(v.raw)
-  }))
+let dadosMes = window.dadosMesCache || {}
 
-
-  
-
-const dadosMes = process(dadosMesTratado, mes.inicio, mes.fim)
+if(Object.keys(dadosMes).length === 0){
+  dadosMes = cache?.dadosMes || {}
+}
 
 // 🔥 SALVA CACHE
 window.dadosMesCache = dadosMes
@@ -1256,8 +1252,7 @@ async function carregarMesBackground(dataSelecionada){
     .toISOString()
     .split("T")[0]
 
-let dadosMesBruto = []
-
+let dadosMesBruto = cache?.dadosMesBruto || []
 if(cache.dadosMes){
   console.log("⚡ CONTINUANDO DO CACHE")
 }
@@ -1292,12 +1287,13 @@ if(cache.dadosMes){
     )
 
     // 🔥 salva progresso REAL
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      dados: cache.dados || {},
-      dadosMes: parcial,
-      uultimaPaginaMes: from + step,
-      atualizadoEm: new Date().toISOString()
-    }))
+localStorage.setItem(STORAGE_KEY, JSON.stringify({
+  dados: cache.dados || {},
+  dadosMes: parcial,
+  dadosMesBruto: dadosMesBruto,
+  ultimaPaginaMes: from + step,
+  atualizadoEm: new Date().toISOString()
+}))
 
     console.log("💾 SALVANDO MÊS:", from)
 
