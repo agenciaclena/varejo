@@ -1031,8 +1031,18 @@ function salvarCache(dados, dadosMes){
 
 }
 // ================= LOAD =================
+let carregandoAgora = false
+
 async function load(dataSelecionada){
 
+  if(carregandoAgora){
+    console.log("⏳ Já carregando, ignorado...")
+    return
+  }
+
+  carregandoAgora = true
+
+  
 console.log("🚀 INICIANDO LOAD")
 
 const dot = document.getElementById("statusDot")
@@ -1293,7 +1303,7 @@ dot.style.boxShadow = "0 0 10px #22c55e"
 console.log("✅ FINALIZADO LOAD")
 document.getElementById("periodo").innerText =
   `Data: ${dataSelecionada}`
-
+carregandoAgora = false
 }
 // ================= RELOAD =================
 async function reload(){
@@ -1362,7 +1372,21 @@ if(inputData){
 
 })
 
+// 🔁 AUTO UPDATE A CADA 30 SEGUNDOS (SEM RECARREGAR TELA)
+setInterval(async () => {
 
+  console.log("🔄 ATUALIZAÇÃO AUTOMÁTICA...")
+
+  const t = turno()
+  const hoje = formatDateOnly(t.inicio)
+
+  try{
+    await load(hoje) // 🔥 só atualiza dados
+  }catch(e){
+    console.error("❌ ERRO AUTO UPDATE:", e)
+  }
+
+}, 30000)
   
 let carregando = false
 
