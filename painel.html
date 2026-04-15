@@ -973,10 +973,6 @@ let dadosMesBruto = []
 let fromMes = 0
 const stepMes = 300
 
-const cache = carregarCache()
-
-let usarCacheMes = false
-
 // 🔥 VERIFICA CACHE (30 MIN)
 if(cache?.dadosMes && cache?.atualizadoEm){
   const diff = Date.now() - new Date(cache.atualizadoEm).getTime()
