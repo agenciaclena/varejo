@@ -120,11 +120,10 @@ export default async function handler(req, res){
         await new Promise(r => setTimeout(r, 500 * tentativa))
       }
 
-      if(!response || !response.ok){
-        log(`❌ ERRO API (página ${pagina}) - ignorando`)
-        pagina++
-        continue
-      }
+if(!response || !response.ok){
+  log("❌ ERRO API - PARANDO")
+  break
+}
 
       const tempoReq = ((Date.now() - t0)/1000).toFixed(2)
 
@@ -152,8 +151,7 @@ export default async function handler(req, res){
 
         ids.add(unique_id)
 
-        log(`🧾 Cupom ${cupom.id} | R$ ${cupom.valorTotal}`)
-
+log(`🧾 Cupom ${cupom.id} | R$ ${cupom.valor || 0}`)
 inserts.push({
   unique_id,
   empresa,
