@@ -195,22 +195,11 @@ inserts.push({
 
 
 // 🚨 CONTROLE DE FIM INTELIGENTE
-if(inserts.length === 0){
-  paginaSemNovos++
-
-  log(`⚠️ Página sem novos cupons (${paginaSemNovos}/3)`)
-
-  if(paginaSemNovos >= 3){
-    log("⛔ Nenhum dado novo nas últimas páginas - FINALIZANDO")
-    break
-  }
-}else{
-  paginaSemNovos = 0
+// 🚨 SÓ PARA SE A PÁGINA VIER VAZIA
+if(items.length === 0){
+  log("🏁 Última página - FINALIZANDO")
+  break
 }
-
-
-
-
 
       
       // ================= INSERT CUPONS =================
@@ -250,7 +239,7 @@ await supabase
       totalPaginas++
 
       // 🔒 PROTEÇÃO LOOP
-      if(pagina > 50){
+      if(pagina > ){
         log("⛔ Limite de segurança atingido (50 páginas)")
         break
       }
