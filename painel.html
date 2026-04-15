@@ -892,8 +892,6 @@ while(true){
 
 let query = sb
 const dataSelecionada = document.getElementById("data").value
-
-let query = sb
   .from("resumo_vendas")
   .select("*")
   .eq("data", dataSelecionada)
@@ -1096,7 +1094,7 @@ dot.style.boxShadow = "0 0 10px #22c55e"
 
 console.log("✅ FINALIZADO LOAD")
 document.getElementById("periodo").innerText =
-  `Período: ${inicio.toISOString().split("T")[0]} → ${fim.toISOString().split("T")[0]}`
+  `Data: ${dataSelecionada}`
 
 }
 // ================= RELOAD =================
