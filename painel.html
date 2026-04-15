@@ -508,35 +508,14 @@ function turno(){
 
 // ================= PARSE =================
 function parse(v){
-
-  const raw = typeof v.raw === "object"
-    ? v.raw
-    : lerJSONSeguro(v.raw)
-
-  if(!raw) return null
-
-
-  
-  // 🔥 PRIORIDADE 1: data completa do cupom
-  let dataHora = raw?.dataHoraFechamentoCupom
-
-  // 🔥 PRIORIDADE 2: montar manual (data + hora)
-  if(!dataHora && raw?.data && raw?.hora){
-    const h = raw.hora.padStart(4,"0")
-    dataHora = `${raw.data}T${h.slice(0,2)}:${h.slice(2,4)}:00`
+  return {
+    data: new Date(`${v.data}T${v.hora || "00:00:00"}`),
+    valor: Number(v.valor_liquido ?? 0),
+    finalizadora: v.finalizadora || "OUTROS",
+    cancelado: v.cancelado,
+    caixa: Number(v.caixa || 0),
+    id: v.unique_id
   }
-
-  // 🔥 FALLBACK (último caso)
-  if(!dataHora && raw?.data){
-    dataHora = raw.data + "T00:00:00"
-  }
-
-return {
-  data: dataHora,
-  valor: Number(raw?.valor || 0),
-  finais: raw?.finalizacoes || [],
-  cancelado: raw?.cancelada || raw?.cancelado || false
-}
 }
 
 // ================= PROCESS =================
@@ -548,13 +527,10 @@ function process(data, inicio, fim){
   data.forEach(v=>{
 
 const p = parse(v)
-if(!p || !p.data) return
+if(!p) return
 
-const raw = typeof v.raw === "object"
-  ? v.raw
-  : lerJSONSeguro(v.raw)
 
-const id = raw?.id
+const id = v.unique_id
     // 🔥 BLOQUEIO DE DUPLICADOS
     if(!id) return
     if(seen.has(id)) return
@@ -576,8 +552,7 @@ const isAlmoco = hora >= 10 && hora < 15
 if(dLocal < inicio || dLocal > fim) return
 const empBase = v.empresa_id
 
-const caixa = Number(raw?.caixa || raw?.numeroCaixa || raw?.caixaId || 0)
-
+const caixa = p.caixa
 let emp = empBase
 
 if(empBase === "VAREJO_URL_MERCATTO"){
@@ -613,18 +588,10 @@ almocoVendas:0
     // ✅ VÁLIDOS
 const totalCupom = p.valor
 
-p.finais.forEach(f=>{
-const valorBruto = Number(f.valor || 0)
-const troco = Number(f.troco || 0)
+const nome = p.finalizadora || "OUTROS"
 
-// 🔥 REMOVE TROCO
-const valor = valorBruto - troco
-  
-  const idf = Number(f.finalizadoraId)
-const nome = MAPA?.[empBase]?.[idf] || "OUTROS"
-  result[emp].finais[nome] =
-    (result[emp].finais[nome] || 0) + valor
-})
+result[emp].finais[nome] =
+  (result[emp].finais[nome] || 0) + p.valor
 
     
     result[emp].total += totalCupom
@@ -905,10 +872,10 @@ while(true){
   await new Promise(r => requestAnimationFrame(r))
 
 let query = sb
-  .from("cupons_importados")
-  .select("empresa_id,data,raw,id")
-  .gte("data", inicioISO)
-  .lte("data", fimISO)
+.from("resumo_vendas")
+.select("*")
+.gte("data", inicioISO.split("T")[0])
+.lte("data", fimISO.split("T")[0])
   .order("data", { ascending: true })
   .order("id", { ascending: true })
   .limit(step)
@@ -941,10 +908,7 @@ lastDate = data[data.length - 1].data
 lastId = data[data.length - 1].id
   console.log(`📄 PAGINA ${from} → ${from + step} | ITENS: ${data.length}`)
 
-  const novos = data.map(v => ({
-    ...v,
-    raw: lerJSONSeguro(v.raw)
-  }))
+const novos = data
 
   dadosParciais = dadosParciais.concat(novos)
 
@@ -1001,11 +965,11 @@ if(!usarCacheMes){
   while(true){
 
     const { data, error } = await sb
-      .from("cupons_importados")
-      .select("empresa_id,data,raw,id")
+ .from("resumo_vendas")
+.select("*")
       .order("data", { ascending: true })
-      .gte("data", mes.inicio.toISOString())
-      .lte("data", mes.fim.toISOString())
+.gte("data", mes.inicio.toISOString().split("T")[0])
+.lte("data", mes.fim.toISOString().split("T")[0])
       .range(fromMes, fromMes + stepMes - 1)
 
     // 🔴 ERRO → USA CACHE E NÃO QUEBRA
