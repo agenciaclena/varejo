@@ -530,8 +530,8 @@ const p = parse(v)
 if(!p) return
 
 
-const id = `${v.empresa_id}-${v.venda_id}`    // 🔥 BLOQUEIO DE DUPLICADOS
-    if(!id) return
+const id = v.unique_id
+  if(!id) return
     if(seen.has(id)) return
     seen.add(id)
 
@@ -548,10 +548,9 @@ const isAlmoco = hora >= 10 && hora < 15
 
     
 // NÃO mexe no horário aqui
-const dataStr = dLocal.toISOString().split("T")[0]
-
-const inicioStr = inicio.toISOString().split("T")[0]
-const fimStr = fim.toISOString().split("T")[0]
+const dataStr = dLocal.toLocaleDateString("sv-SE")
+const inicioStr = inicio.toLocaleDateString("sv-SE")
+const fimStr = fim.toLocaleDateString("sv-SE")
 
 if(dataStr < inicioStr || dataStr > fimStr) return
   
@@ -916,8 +915,14 @@ lastId = data[data.length - 1].id
 
 const novos = data
 
-  dadosParciais = dadosParciais.concat(novos)
-
+dadosParciais = Object.values(
+  Object.fromEntries(
+    [...dadosParciais, ...novos].map(v => [
+      v.unique_id,
+      v
+    ])
+  )
+)
   const parcial = process(dadosParciais, inicio, fim)
 
   render(parcial, window.dadosMesCache || {})
