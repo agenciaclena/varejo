@@ -294,17 +294,17 @@ function atualizarKPI(nome, linha){
     }
   }
 
+  if(linha.includes("Período")){
+    const d = linha.split("→")[0].split(":")[1]
+    if(d){
+      document.getElementById("dia_"+nome).innerText = d.trim()
+    }
+  }
 }
 
 // EXECUÇÃO
 async function executarEmpresa(emp){
-const dataInicio = document.getElementById("dataInicio").value
 
-if(dataInicio){
-  const [ano, mes, dia] = dataInicio.split("-")
-
-  document.getElementById("dia_"+nome).innerText = dia
-}
   const nome = emp.nome
   const status = document.getElementById("status_"+nome)
   const bar = document.getElementById("bar_"+nome)
