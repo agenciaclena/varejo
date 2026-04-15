@@ -528,7 +528,6 @@ function parse(v){
 function process(data, inicio, fim){
 
   const result = {}
-  const seen = new Set() // 🔥 CONTROLE DE DUPLICADOS
 
   data.forEach(v=>{
 
@@ -538,8 +537,6 @@ if(!p) return
 
 const id = v.unique_id
   if(!id) return
-    if(seen.has(id)) return
-    seen.add(id)
 
 
 const d = new Date(p.data)
