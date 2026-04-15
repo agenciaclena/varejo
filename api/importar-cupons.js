@@ -142,8 +142,9 @@ if(items.length === 0){
 const paginaHash = JSON.stringify(items.map(i => i.id))
 
 if(paginaHash === ultimaPaginaHash){
-  log("⛔ Página repetida detectada - PARANDO")
-  break
+  log("⚠️ Página repetida - pulando...")
+  pagina++
+  continue
 }
 
 ultimaPaginaHash = paginaHash
@@ -194,12 +195,6 @@ inserts.push({
 
 
 
-// 🚨 CONTROLE DE FIM INTELIGENTE
-// 🚨 SÓ PARA SE A PÁGINA VIER VAZIA
-if(items.length === 0){
-  log("🏁 Última página - FINALIZANDO")
-  break
-}
 
       
       // ================= INSERT CUPONS =================
@@ -238,11 +233,10 @@ await supabase
 
       totalPaginas++
 
-      // 🔒 PROTEÇÃO LOOP
-      if(pagina > ){
-        log("⛔ Limite de segurança atingido (50 páginas)")
-        break
-      }
+if(pagina > 500){
+  log("⛔ Limite de segurança (500 páginas)")
+  break
+}
 
       pagina++
 
