@@ -4,8 +4,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 )
 
-export default async function handler(req, res){
-
+module.exports = async function handler(req, res){
   // 🔥 STREAM REALTIME
   res.writeHead(200, {
     "Content-Type": "text/plain; charset=utf-8",
@@ -153,16 +152,9 @@ export default async function handler(req, res){
 
         log(`🧾 Cupom ${cupom.id} | R$ ${cupom.valorTotal}`)
 
-        const valor_total = Number(cupom.valorTotal || 0)
-        const cancelado = !!cupom.cancelada
+const valor_total = Number(cupom.valorTotal || 0)
+const cancelado = !!cupom.cancelada
 
-        inserts.push({
-          unique_id,
-          empresa,
-          empresa_id: empresa,
-          venda_id: cupom.id,
-          data: cupom.data,
-          valor_total,
 let valor_liquido = 0
 let finalizadoraPrincipal = null
 
@@ -176,7 +168,7 @@ if(Array.isArray(cupom.finalizacoes) && cupom.finalizacoes.length > 0){
     (Number(a.valor||0) > Number(b.valor||0) ? a : b)
   )
 
-  finalizadoraPrincipal = maior.finalizadoraId
+  finalizadoraPrincipal = Number(maior.finalizadoraId || 0)
 }
 
 inserts.push({
