@@ -559,8 +559,6 @@ const id = raw?.id
     if(seen.has(id)) return
     seen.add(id)
 
-const p = parse(v)
-if(!p || !p.data) return
 
 const d = new Date(p.data)
 
