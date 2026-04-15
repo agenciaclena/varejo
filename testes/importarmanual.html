@@ -8,32 +8,53 @@
 
 <style>
 
+:root{
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --border:#e2e8f0;
+  --text:#0f172a;
+  --sub:#64748b;
+  --green:#16a34a;
+  --blue:#2563eb;
+  --yellow:#f59e0b;
+  --red:#ef4444;
+}
+
+/* BASE */
 body{
   margin:0;
   font-family:Inter;
-  background:#020617;
-  color:#fff;
+  background:var(--bg);
+  color:var(--text);
 }
 
 /* HEADER */
 header{
   padding:15px;
-  background:#020617;
-  border-bottom:1px solid #1e293b;
+  background:#ffffff;
+  border-bottom:1px solid var(--border);
   display:flex;
   gap:10px;
   align-items:center;
+  position:sticky;
+  top:0;
+  z-index:10;
 }
 
-input, button{
+input{
   padding:10px;
   border-radius:6px;
-  border:none;
+  border:1px solid var(--border);
   font-size:14px;
+  background:#fff;
 }
 
 button{
-  background:#16a34a;
+  padding:10px 14px;
+  border-radius:6px;
+  border:none;
+  background:var(--green);
+  color:white;
   font-weight:700;
   cursor:pointer;
 }
@@ -48,24 +69,27 @@ button:hover{
   grid-template-columns:1fr 1fr;
   grid-template-rows:1fr 1fr;
   height:calc(100vh - 70px);
-  gap:10px;
-  padding:10px;
+  gap:12px;
+  padding:12px;
 }
 
+/* CARD */
 .card{
-  background:#0f172a;
-  border-radius:10px;
+  background:var(--card);
+  border-radius:12px;
   display:flex;
   flex-direction:column;
   overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,0.05);
+  border:1px solid var(--border);
 }
 
 /* HEADER CARD */
 .card-header{
-  padding:12px;
+  padding:14px;
   font-weight:700;
-  font-size:15px;
-  border-bottom:1px solid #1e293b;
+  font-size:16px;
+  border-bottom:1px solid var(--border);
   display:flex;
   justify-content:space-between;
 }
@@ -73,16 +97,16 @@ button:hover{
 /* STATUS */
 .status{
   font-size:13px;
-  opacity:0.8;
+  color:var(--sub);
 }
 
-/* KPI NOVO */
+/* KPI */
 .kpi{
   display:flex;
   justify-content:space-between;
-  padding:8px 12px;
+  padding:10px 14px;
   font-size:13px;
-  border-bottom:1px solid #1e293b;
+  border-bottom:1px solid var(--border);
 }
 
 .kpi div{
@@ -91,9 +115,22 @@ button:hover{
 }
 
 .kpi span{
-  font-weight:700;
-  font-size:15px;
-  color:#22c55e;
+  font-weight:800;
+  font-size:18px;
+  color:var(--green);
+}
+
+/* PROGRESS */
+.progress{
+  height:6px;
+  background:#e2e8f0;
+}
+
+.bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#16a34a,#22c55e);
+  transition:0.3s;
 }
 
 /* LOG */
@@ -103,30 +140,19 @@ button:hover{
   padding:12px;
   font-family:monospace;
   font-size:13px;
-  background:#000;
+  background:#f8fafc;
+  line-height:1.5;
 }
 
-/* TIPOS */
+/* LINHAS */
 .line{ margin-bottom:4px; }
-.info{ color:#38bdf8 }
-.success{ color:#22c55e }
-.warn{ color:#f59e0b }
-.error{ color:#ef4444 }
-.highlight{ color:#eab308; font-weight:bold }
-.sep{ color:#64748b }
 
-/* PROGRESS */
-.progress{
-  height:5px;
-  background:#1e293b;
-}
-
-.bar{
-  height:100%;
-  width:0%;
-  background:#22c55e;
-  transition:0.3s;
-}
+.info{ color:var(--blue) }
+.success{ color:var(--green) }
+.warn{ color:var(--yellow) }
+.error{ color:var(--red) }
+.highlight{ color:#ca8a04; font-weight:700 }
+.sep{ color:var(--sub) }
 
 </style>
 </head>
@@ -147,7 +173,7 @@ button:hover{
 
 <div class="grid">
 
-<!-- MERCATTO -->
+<!-- CARDS (mantidos iguais) -->
 <div class="card">
   <div class="card-header">
     MERCATTO
@@ -163,7 +189,6 @@ button:hover{
   <div class="log" id="log_MERCATTO"></div>
 </div>
 
-<!-- VILLA -->
 <div class="card">
   <div class="card-header">
     VILLA
@@ -179,7 +204,6 @@ button:hover{
   <div class="log" id="log_VILLA"></div>
 </div>
 
-<!-- PADARIA -->
 <div class="card">
   <div class="card-header">
     PADARIA
@@ -195,7 +219,6 @@ button:hover{
   <div class="log" id="log_PADARIA"></div>
 </div>
 
-<!-- DELICIA -->
 <div class="card">
   <div class="card-header">
     DELÍCIA
@@ -248,10 +271,10 @@ function addLog(nome, text){
 // KPI
 function atualizarKPI(nome, linha){
 
-  // TOTAL (pega valor do cupom)
   if(linha.includes("🧾 Cupom")){
     const valor = linha.match(/R\$ ([\d\.]+)/)
     if(valor){
+
       let atual = Number(
         document.getElementById("total_"+nome).innerText
         .replace("R$","")
@@ -261,19 +284,22 @@ function atualizarKPI(nome, linha){
 
       atual += Number(valor[1])
 
-      document.getElementById("total_"+nome).innerText =
-        atual.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
+      const el = document.getElementById("total_"+nome)
+
+      el.innerText = atual.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
+
+      // 🔥 ANIMAÇÃO
+      el.style.transform = "scale(1.1)"
+      setTimeout(()=> el.style.transform="scale(1)",150)
     }
   }
 
-  // DIA
   if(linha.includes("Período")){
     const d = linha.split("→")[0].split(":")[1]
     if(d){
       document.getElementById("dia_"+nome).innerText = d.trim()
     }
   }
-
 }
 
 // EXECUÇÃO
@@ -330,7 +356,6 @@ async function executarEmpresa(emp){
   status.innerText = "Finalizado"
 }
 
-// EXECUTAR TODAS
 async function executarTudo(){
   await Promise.all(empresas.map(e => executarEmpresa(e)))
 }
