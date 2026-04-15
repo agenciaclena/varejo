@@ -1157,6 +1157,8 @@ async function reload(){
 
   btn.classList.add("loading")
 
+  await new Promise(r => setTimeout(r, 150)) // 🔥 suaviza UX
+
   try{
     await load(data)
   }catch(e){
