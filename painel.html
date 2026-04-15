@@ -564,9 +564,22 @@ function process(data, inicio, fim){
 
 data.forEach(v=>{
 
-  const dataVenda = new Date(`${v.data}T${v.hora || "00:00:00"}`)
+const dataVenda = new Date(
+  new Date(`${v.data}T${v.hora || "00:00:00"}`)
+    .toLocaleString("en-US", { timeZone: "America/Bahia" })
+)
 
-  if(dataVenda < inicio || dataVenda > fim) return
+const inicioBahia = new Date(
+  inicio.toLocaleString("en-US", { timeZone: "America/Bahia" })
+)
+
+const fimBahia = new Date(
+  fim.toLocaleString("en-US", { timeZone: "America/Bahia" })
+)
+
+if(dataVenda < inicioBahia || dataVenda > fimBahia) return
+
+  
   
 const p = parse(v)
 if(!p) return
@@ -930,7 +943,8 @@ while(true){
 let query = sb
   .from("resumo_vendas")
   .select("*")
-  .eq("data", dataSelecionada)
+  .gte("data", dataSelecionada)
+  .lte("data", dataSelecionada)
   .eq("cancelado", false)
   .order("data", { ascending: true })
   .order("id", { ascending: true })
