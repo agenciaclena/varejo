@@ -936,11 +936,11 @@ while(true){
 
 const t = turno()
 
-query = sb
+let query = sb
   .from("resumo_vendas")
   .select("*")
-  .gte("data", formatDateOnly(t.inicio))
-  .lte("data", formatDateOnly(t.fim))
+.gte("data", formatDateOnly(t.inicio))
+.lte("data", formatDateOnly(t.fim))
   .eq("cancelado", false)
   .order("data", { ascending: true })
   .order("id", { ascending: true })
