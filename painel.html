@@ -713,9 +713,12 @@ function render(dados, dadosMes){
 
   renderKPIs(dados)
 
-  const left = document.getElementById("left")
-  const right = document.getElementById("right")
+const left = document.getElementById("left")
+const right = document.getElementById("right")
 
+// 🔥 LIMPA ANTES DE RENDERIZAR
+left.innerHTML = ""
+right.innerHTML = ""
   const ORDEM = [
     "VILLA",
     "DELICIA",
@@ -964,6 +967,9 @@ if(error){
   console.error("❌ ERRO PAGINA:", error)
 const mes = mesOperacional()
   const cache = carregarCache()
+
+
+  
 if(!window.renderInicializado){
   render(cache.dados || {}, cache.dadosMes || {})
   window.renderInicializado = true
@@ -1157,8 +1163,10 @@ const finalDados = process(dadosParciais, inicio, fim)
 console.log("📊 FINAL FILTRADO:", finalDados)
 
 // ✅ AQUI (EXATO)
-window.renderInicializado = false
-render(finalDados, dadosMes)
+if(!window.renderInicializado){
+  render(finalDados, dadosMes)
+  window.renderInicializado = true
+}
 if(!carregandoMes){
   carregandoMes = true
   carregarMesBackground(dataSelecionada)
@@ -1210,17 +1218,17 @@ document.getElementById("data").value = formatDateOnly(t.inicio)
 // 🔥 AQUI ENTRA O CACHE
 const cache = carregarCache()
 
+window.renderInicializado = false
+
 if(cache){
 
   const diff = Date.now() - new Date(cache.atualizadoEm).getTime()
 
-  if(diff < 1000 * 60 * 10){ // 10 minutos
+  if(diff < 1000 * 60 * 10 && !window.renderInicializado){
     console.log("⚡ CACHE RECENTE CARREGADO")
     render(cache.dados || {}, cache.dadosMes || {})
-  }else{
-    console.log("⌛ CACHE EXPIRADO")
+    window.renderInicializado = true
   }
-
 }
 
 // 🔄 SEMPRE CARREGA DO BANCO DEPOIS
