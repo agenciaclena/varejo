@@ -26,14 +26,15 @@ header{
 }
 
 input, button{
-  padding:8px;
+  padding:10px;
   border-radius:6px;
   border:none;
+  font-size:14px;
 }
 
 button{
   background:#16a34a;
-  font-weight:600;
+  font-weight:700;
   cursor:pointer;
 }
 
@@ -41,7 +42,7 @@ button:hover{
   background:#22c55e;
 }
 
-/* GRID 4 TELAS */
+/* GRID */
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -61,8 +62,9 @@ button:hover{
 
 /* HEADER CARD */
 .card-header{
-  padding:10px;
-  font-weight:600;
+  padding:12px;
+  font-weight:700;
+  font-size:15px;
   border-bottom:1px solid #1e293b;
   display:flex;
   justify-content:space-between;
@@ -70,22 +72,42 @@ button:hover{
 
 /* STATUS */
 .status{
-  font-size:11px;
-  opacity:0.7;
+  font-size:13px;
+  opacity:0.8;
+}
+
+/* KPI NOVO */
+.kpi{
+  display:flex;
+  justify-content:space-between;
+  padding:8px 12px;
+  font-size:13px;
+  border-bottom:1px solid #1e293b;
+}
+
+.kpi div{
+  display:flex;
+  flex-direction:column;
+}
+
+.kpi span{
+  font-weight:700;
+  font-size:15px;
+  color:#22c55e;
 }
 
 /* LOG */
 .log{
   flex:1;
   overflow:auto;
-  padding:10px;
+  padding:12px;
   font-family:monospace;
-  font-size:11px;
+  font-size:13px;
   background:#000;
 }
 
 /* TIPOS */
-.line{ margin-bottom:3px; }
+.line{ margin-bottom:4px; }
 .info{ color:#38bdf8 }
 .success{ color:#22c55e }
 .warn{ color:#f59e0b }
@@ -95,7 +117,7 @@ button:hover{
 
 /* PROGRESS */
 .progress{
-  height:4px;
+  height:5px;
   background:#1e293b;
 }
 
@@ -125,38 +147,66 @@ button:hover{
 
 <div class="grid">
 
-<div class="card" id="card_MERCATTO">
+<!-- MERCATTO -->
+<div class="card">
   <div class="card-header">
     MERCATTO
     <span class="status" id="status_MERCATTO">Aguardando</span>
   </div>
+
+  <div class="kpi">
+    <div>💰 Total<span id="total_MERCATTO">R$ 0,00</span></div>
+    <div>📅 Dia<span id="dia_MERCATTO">-</span></div>
+  </div>
+
   <div class="progress"><div class="bar" id="bar_MERCATTO"></div></div>
   <div class="log" id="log_MERCATTO"></div>
 </div>
 
-<div class="card" id="card_VILLA">
+<!-- VILLA -->
+<div class="card">
   <div class="card-header">
     VILLA
     <span class="status" id="status_VILLA">Aguardando</span>
   </div>
+
+  <div class="kpi">
+    <div>💰 Total<span id="total_VILLA">R$ 0,00</span></div>
+    <div>📅 Dia<span id="dia_VILLA">-</span></div>
+  </div>
+
   <div class="progress"><div class="bar" id="bar_VILLA"></div></div>
   <div class="log" id="log_VILLA"></div>
 </div>
 
-<div class="card" id="card_PADARIA">
+<!-- PADARIA -->
+<div class="card">
   <div class="card-header">
     PADARIA
     <span class="status" id="status_PADARIA">Aguardando</span>
   </div>
+
+  <div class="kpi">
+    <div>💰 Total<span id="total_PADARIA">R$ 0,00</span></div>
+    <div>📅 Dia<span id="dia_PADARIA">-</span></div>
+  </div>
+
   <div class="progress"><div class="bar" id="bar_PADARIA"></div></div>
   <div class="log" id="log_PADARIA"></div>
 </div>
 
-<div class="card" id="card_DELICIA">
+<!-- DELICIA -->
+<div class="card">
   <div class="card-header">
     DELÍCIA
     <span class="status" id="status_DELICIA">Aguardando</span>
   </div>
+
+  <div class="kpi">
+    <div>💰 Total<span id="total_DELICIA">R$ 0,00</span></div>
+    <div>📅 Dia<span id="dia_DELICIA">-</span></div>
+  </div>
+
   <div class="progress"><div class="bar" id="bar_DELICIA"></div></div>
   <div class="log" id="log_DELICIA"></div>
 </div>
@@ -172,7 +222,7 @@ const empresas = [
   {nome:"DELICIA", value:"VAREJO_URL_DELICIA"}
 ]
 
-// 🎨 LOG ORGANIZADO
+// LOG
 function addLog(nome, text){
 
   const logDiv = document.getElementById("log_"+nome)
@@ -191,30 +241,58 @@ function addLog(nome, text){
 
   logDiv.appendChild(el)
   logDiv.scrollTop = logDiv.scrollHeight
+
+  atualizarKPI(nome, text)
 }
 
-// 🔄 EXECUTAR UMA EMPRESA
+// KPI
+function atualizarKPI(nome, linha){
+
+  // TOTAL (pega valor do cupom)
+  if(linha.includes("🧾 Cupom")){
+    const valor = linha.match(/R\$ ([\d\.]+)/)
+    if(valor){
+      let atual = Number(
+        document.getElementById("total_"+nome).innerText
+        .replace("R$","")
+        .replace(/\./g,"")
+        .replace(",",".")
+      ) || 0
+
+      atual += Number(valor[1])
+
+      document.getElementById("total_"+nome).innerText =
+        atual.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
+    }
+  }
+
+  // DIA
+  if(linha.includes("Período")){
+    const d = linha.split("→")[0].split(":")[1]
+    if(d){
+      document.getElementById("dia_"+nome).innerText = d.trim()
+    }
+  }
+
+}
+
+// EXECUÇÃO
 async function executarEmpresa(emp){
 
   const nome = emp.nome
   const status = document.getElementById("status_"+nome)
   const bar = document.getElementById("bar_"+nome)
-  const logDiv = document.getElementById("log_"+nome)
 
-  logDiv.innerHTML = ""
+  document.getElementById("log_"+nome).innerHTML = ""
+  document.getElementById("total_"+nome).innerText = "R$ 0,00"
+  document.getElementById("dia_"+nome).innerText = "-"
+
   bar.style.width = "0%"
-
   status.innerText = "Executando..."
-
-  addLog(nome,"━━━━━━━━━━━━━━━━")
-  addLog(nome,"🚀 Iniciando...")
-  addLog(nome,"━━━━━━━━━━━━━━━━")
 
   const response = await fetch("/api/importar-cupons",{
     method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
+    headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({
       empresa: emp.value,
       dataInicio: document.getElementById("dataInicio").value,
@@ -239,10 +317,8 @@ async function executarEmpresa(emp){
 
     linhas.forEach(linha=>{
       if(linha.trim()){
-
         addLog(nome,linha)
 
-        // 📊 progresso fake inteligente
         progresso += 2
         if(progresso > 100) progresso = 100
         bar.style.width = progresso + "%"
@@ -252,19 +328,11 @@ async function executarEmpresa(emp){
 
   bar.style.width = "100%"
   status.innerText = "Finalizado"
-
-  addLog(nome,"━━━━━━━━━━━━━━━━")
-  addLog(nome,"🏁 FINALIZADO")
-  addLog(nome,"━━━━━━━━━━━━━━━━")
 }
 
-// 🚀 EXECUTAR TODAS (SIMULTÂNEO)
+// EXECUTAR TODAS
 async function executarTudo(){
-
-  await Promise.all(
-    empresas.map(emp => executarEmpresa(emp))
-  )
-
+  await Promise.all(empresas.map(e => executarEmpresa(e)))
 }
 
 </script>
