@@ -586,10 +586,6 @@ const isAlmoco = hora >= 10 && hora < 15
 
 
 
-    
-// NÃO mexe no horário aqui
-const dataVenda = new Date(`${v.data}T${v.hora || "00:00:00"}`)
-
 const dataHora = new Date(
   new Date(`${v.data}T${v.hora || "00:00:00"}`)
     .toLocaleString("en-US", { timeZone: "America/Bahia" })
