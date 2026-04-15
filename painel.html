@@ -989,9 +989,9 @@ const parcial = process(dadosParciais, inicio, fim)
 salvarCache(parcial, window.dadosMesCache || {})
 
 // 🔥 RENDER PROGRESSIVO
-if(from % 200 === 0){
+if(from === 0){
   render(parcial, window.dadosMesCache || {})
-}  
+}
   if(data.length < step){
     console.log("🏁 ÚLTIMA PÁGINA")
     break
