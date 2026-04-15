@@ -548,8 +548,7 @@ const isAlmoco = hora >= 10 && hora < 15
 
     
 // NÃO mexe no horário aqui
-const dataVenda = new Date(p.data)
-
+const dataVenda = new Date(`${v.data}T${v.hora || "00:00:00"}`)
 if(dataVenda < inicio || dataVenda > fim) return
   
     
