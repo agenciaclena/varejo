@@ -1140,17 +1140,7 @@ if(cache){
 load(t.inicio,t.fim)  
 let carregando = false
 
-setInterval(()=>{
-  if(carregando) return
 
-  carregando = true
-
-  const novoTurno = turno()
-
-  load(novoTurno.inicio, novoTurno.fim)
-    .finally(()=> carregando = false)
-
-}, 120000)
 
   
 function lerJSONSeguro(raw){
