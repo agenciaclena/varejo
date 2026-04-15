@@ -65,8 +65,7 @@ export default async function handler(req, res) {
 const agora = new Date()
 
 // 🔥 -30 minutos
-const inicio = new Date(agora.getTime() - (30 * 60 * 1000))
-
+const inicio = new Date(agora.getTime() - (60 * 60 * 1000))
 // 🔥 FORMATAR ISO SEM MILLISECOND
 function toISO(d){
   const pad = n => String(n).padStart(2,"0")
