@@ -923,7 +923,7 @@ const right = document.getElementById("right")
 left.innerHTML = ""
 right.innerHTML = ""
 let from = 0
-const step = 50
+const step = 500
 
 // 🔥 CACHE DO MÊS
 window.dadosMesCache = {}
@@ -1315,7 +1315,6 @@ if(cache.dadosMes){
 localStorage.setItem(STORAGE_KEY, JSON.stringify({
   dados: cache.dados || {},
   dadosMes: parcial,
-  dadosMesBruto: dadosMesBruto,
   ultimaPaginaMes: from + step,
   atualizadoEm: new Date().toISOString()
 }))
