@@ -164,24 +164,34 @@ export default async function handler(req, res){
           venda_id: cupom.id,
           data: cupom.data,
           valor_total,
-          valor_liquido: valor_total,
-          finalizadora_principal: cupom.finalizacoes?.[0]?.descricao || null,
-          cancelado,
-          raw: cupom
-        })
+let valor_liquido = 0
+let finalizadoraPrincipal = null
 
-        if(Array.isArray(cupom.finalizacoes)){
-          cupom.finalizacoes.forEach(f=>{
-            pagamentos.push({
-              cupom_unique_id: unique_id,
-              finalizadora_id: String(f.finalizadoraId),
-              finalizadora_nome: f.descricao,
-              valor: Number(f.valor || 0) - Number(f.troco || 0)
-            })
-          })
-        }
-      }
+if(Array.isArray(cupom.finalizacoes) && cupom.finalizacoes.length > 0){
 
+  valor_liquido = cupom.finalizacoes.reduce((total,f)=>{
+    return total + (Number(f.valor || 0) - Number(f.troco || 0))
+  },0)
+
+  const maior = cupom.finalizacoes.reduce((a,b)=>
+    (Number(a.valor||0) > Number(b.valor||0) ? a : b)
+  )
+
+  finalizadoraPrincipal = maior.finalizadoraId
+}
+
+inserts.push({
+  unique_id,
+  empresa,
+  empresa_id: empresa,
+  venda_id: cupom.id,
+  data: cupom.data,
+  valor_total,
+  valor_liquido,
+  finalizadora_principal: finalizadoraPrincipal,
+  cancelado,
+  raw: cupom
+})
       // ================= INSERT CUPONS =================
       if(inserts.length > 0){
 
