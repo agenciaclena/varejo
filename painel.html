@@ -929,15 +929,7 @@ lastId = data[data.length - 1].id
   console.log(`📄 PAGINA ${from} → ${from + step} | ITENS: ${data.length}`)
 
 const novos = data
-
-dadosParciais = Object.values(
-  Object.fromEntries(
-    [...dadosParciais, ...novos].map(v => [
-      v.unique_id,
-      v
-    ])
-  )
-)
+dadosParciais = [...dadosParciais, ...novos]
   const parcial = process(dadosParciais, inicio, fim)
 
 salvarCache(parcial, window.dadosMesCache || {})
