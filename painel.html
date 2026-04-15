@@ -911,10 +911,17 @@ if(lastDate){
 }
 
   const { data, error } = await query
-  if(error){
-    console.error("❌ ERRO PAGINA:", error)
-    break
+if(error){
+  console.error("❌ ERRO PAGINA:", error)
+
+  const cache = carregarCache()
+  if(cache){
+    console.log("⚡ USANDO CACHE POR ERRO")
+    render(cache.dados || {}, cache.dadosMes || {})
   }
+
+  return // 🔥 PARA TUDO
+}
 
   if(!data || data.length === 0){
     console.log("⛔ FIM PAGINAÇÃO")
@@ -946,42 +953,125 @@ salvarCache(parcial, window.dadosMesCache || {})
 console.log("📊 TOTAL CARREGADO:", dadosParciais.length)
 
 // 🔥 MÊS (usa os mesmos dados já carregados)
-const mes = mesOperacional()
+const cache = carregarCache()
+
+let usarCacheMes = false
+
+if(cache?.dadosMes && cache?.atualizadoEm){
+  const diff = Date.now() - new Date(cache.atualizadoEm).getTime()
+
+  if(diff < 1000 * 60 * 30){ // 🔥 30 MIN
+    usarCacheMes = true
+    console.log("⚡ USANDO CACHE DO MÊS")
+    window.dadosMesCache = cache.dadosMes
+  }
+}
+
+
+  
+let dadosMesBruto = []
+let fromMes = 0
+const stepMes = 300
+
+const cache = carregarCache()
+
+let usarCacheMes = false
+
+// 🔥 VERIFICA CACHE (30 MIN)
+if(cache?.dadosMes && cache?.atualizadoEm){
+  const diff = Date.now() - new Date(cache.atualizadoEm).getTime()
+
+  if(diff < 1000 * 60 * 30){
+    usarCacheMes = true
+    console.log("⚡ USANDO CACHE DO MÊS")
+    window.dadosMesCache = cache.dadosMes
+  }
+}
 
 let dadosMesBruto = []
 let fromMes = 0
 const stepMes = 300
 
-while(true){
+// 🔥 SÓ BUSCA SE NÃO TEM CACHE
+if(!usarCacheMes){
 
-const { data, error } = await sb
-  .from("cupons_importados")
-.select("empresa_id,data,raw,id")
-.order("data", { ascending: true })
-  .gte("data", mes.inicio.toISOString())
-  .lte("data", mes.fim.toISOString())
-  .range(fromMes, fromMes + stepMes - 1)
+  while(true){
 
-if(error){
-  console.error("❌ ERRO MES:", error)
-  break
-}
+    const { data, error } = await sb
+      .from("cupons_importados")
+      .select("empresa_id,data,raw,id")
+      .order("data", { ascending: true })
+      .gte("data", mes.inicio.toISOString())
+      .lte("data", mes.fim.toISOString())
+      .range(fromMes, fromMes + stepMes - 1)
 
-if(!data || data.length === 0){
-  console.log("⛔ FIM PAGINAÇÃO MÊS")
-  break
-}
+    // 🔴 ERRO → USA CACHE E NÃO QUEBRA
+    if(error){
+      console.error("❌ ERRO MES:", error)
 
-console.log(`📊 MÊS PAGINA ${fromMes} → ${fromMes + stepMes} | ${data.length}`)
+      if(cache?.dadosMes){
+        console.log("⚡ FALLBACK CACHE")
+        window.dadosMesCache = cache.dadosMes
+      }
 
-dadosMesBruto = dadosMesBruto.concat(data)
+      break
+    }
 
-if(data.length < stepMes){
-  console.log("🏁 ÚLTIMA PÁGINA MÊS")
-  break
-}
+    if(!data || data.length === 0){
+      console.log("⛔ FIM PAGINAÇÃO MÊS")
+      break
+    }
 
-fromMes += stepMes
+    console.log(`📊 MÊS PAGINA ${fromMes} → ${fromMes + stepMes} | ${data.length}`)
+
+    dadosMesBruto = dadosMesBruto.concat(data)
+
+    // 🔥 PROCESSA PARCIAL
+    const parcialMes = process(
+      dadosMesBruto.map(v => ({
+        ...v,
+        raw: lerJSONSeguro(v.raw)
+      })),
+      mes.inicio,
+      mes.fim
+    )
+
+    // 🔥 ATUALIZA EM TEMPO REAL
+    window.dadosMesCache = parcialMes
+
+    // 🔥 SALVA PROGRESSIVO
+    salvarCache(
+      window.dadosCache || {},
+      parcialMes
+    )
+
+    if(data.length < stepMes){
+      console.log("🏁 ÚLTIMA PÁGINA MÊS")
+      break
+    }
+
+    fromMes += stepMes
+  }
+
+  // 🔥 FINALIZA (SÓ SE TEM DADOS)
+  if(dadosMesBruto.length > 0){
+
+    const dadosMesTratado = dadosMesBruto.map(v => ({
+      ...v,
+      raw: lerJSONSeguro(v.raw)
+    }))
+
+    const dadosMes = process(dadosMesTratado, mes.inicio, mes.fim)
+
+    window.dadosMesCache = dadosMes
+
+    const cacheAtual = carregarCache()
+
+    salvarCache(
+      cacheAtual?.dados || {},
+      dadosMes
+    )
+  }
 }
 
 const dadosMesTratado = (dadosMesBruto || [])
@@ -998,6 +1088,12 @@ const dadosMes = process(dadosMesTratado, mes.inicio, mes.fim)
 // 🔥 SALVA CACHE
 window.dadosMesCache = dadosMes
 
+const cacheAtual = carregarCache()
+
+salvarCache(
+  cacheAtual?.dados || {},
+  dadosMes
+)
 // 🔥 RENDER FINAL COMPLETO
 render(process(dadosParciais, inicio, fim), dadosMes)
 const finalDados = process(dadosParciais, inicio, fim)
