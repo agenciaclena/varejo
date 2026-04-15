@@ -940,11 +940,13 @@ while(true){
   await new Promise(r => requestAnimationFrame(r))
 
 
-let query = sb
+const t = turno()
+
+query = sb
   .from("resumo_vendas")
   .select("*")
-  .gte("data", dataSelecionada)
-  .lte("data", dataSelecionada)
+  .gte("data", formatDateOnly(t.inicio))
+  .lte("data", formatDateOnly(t.fim))
   .eq("cancelado", false)
   .order("data", { ascending: true })
   .order("id", { ascending: true })
