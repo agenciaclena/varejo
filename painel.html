@@ -1285,10 +1285,7 @@ const finalDados = process(dadosParciais, inicio, fim)
 console.log("📊 FINAL FILTRADO:", finalDados)
 
 // ✅ AQUI (EXATO)
-if(!window.renderInicializado){
-  render(finalDados, dadosMes)
-  window.renderInicializado = true
-}
+render(finalDados, dadosMes)
 if(!carregandoMes){
   carregandoMes = true
   carregarMesBackground(dataSelecionada)
