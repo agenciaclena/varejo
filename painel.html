@@ -984,13 +984,29 @@ if(!usarCacheMes){
 
   while(true){
 
-    const { data, error } = await sb
- .from("resumo_vendas")
-.select("*")
-      .order("data", { ascending: true })
-.eq("data", dataSelecionada)
-.eq("cancelado", false)
-      .range(fromMes, fromMes + stepMes - 1)
+const dataSelecionada = document.getElementById("data").value
+
+const ano = dataSelecionada.split("-")[0]
+const mesNumero = dataSelecionada.split("-")[1]
+
+// 🔥 INICIO DO MÊS
+const inicioMes = `${ano}-${mes}-01`
+
+// 🔥 FIM DO MÊS (dinâmico)
+const fimMes = new Date(ano, mes, 0)
+  .toISOString()
+  .split("T")[0]
+
+const { data, error } = await sb
+  .from("resumo_vendas")
+  .select("*")
+  .gte("data", inicioMes)
+  .lte("data", fimMes)
+  .eq("cancelado", false)
+  .order("data", { ascending: true })
+  .range(fromMes, fromMes + stepMes - 1)
+
+    
 
     // 🔴 ERRO → USA CACHE E NÃO QUEBRA
     if(error){
