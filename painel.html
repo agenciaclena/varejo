@@ -934,13 +934,11 @@ while(true){
   await new Promise(r => requestAnimationFrame(r))
 
 
-const t = turno()
-
 let query = sb
   .from("resumo_vendas")
   .select("*")
-.gte("data", formatDateOnly(t.inicio))
-.lte("data", formatDateOnly(t.fim))
+  .gte("data", dataSelecionada)
+  .lte("data", dataSelecionada)
   .eq("cancelado", false)
   .order("data", { ascending: true })
   .order("id", { ascending: true })
@@ -976,13 +974,16 @@ lastId = data[data.length - 1].id
 
 const novos = data
 dadosParciais = [...dadosParciais, ...novos]
-const t = turno()
-const parcial = process(dadosParciais, t.inicio, t.fim)
+const inicio = new Date(dataSelecionada + "T00:00:00")
+const fim = new Date(dataSelecionada + "T23:59:59")
+
+const parcial = process(dadosParciais, inicio, fim)
 salvarCache(parcial, window.dadosMesCache || {})
 
 // 🔥 RENDER PROGRESSIVO
-render(parcial, window.dadosMesCache || {})
-  
+if(from % 200 === 0){
+  render(parcial, window.dadosMesCache || {})
+}  
   if(data.length < step){
     console.log("🏁 ÚLTIMA PÁGINA")
     break
