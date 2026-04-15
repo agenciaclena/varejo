@@ -405,6 +405,7 @@ const sb = window.supabase.createClient(
   "sb_publishable_Jm2ZQKzPS3gNPCKSjFAmYQ_WNMYwF1j"
 )
 const STORAGE_KEY = "painel_dv_cache"
+let carregandoMes = false
 // ================= MAPA ORIGINAL =================
 const MAPA_ORIGINAL = {
   VAREJO_URL_DELICIA: [
@@ -1142,15 +1143,19 @@ salvarCache(
   dadosMes
 )
 // 🔥 RENDER FINAL COMPLETO
-const t = turno()
-const finalDados = process(dadosParciais, t.inicio, t.fim)
+const inicio = new Date(dataSelecionada + "T00:00:00")
+const fim = new Date(dataSelecionada + "T23:59:59")
+
+const finalDados = process(dadosParciais, inicio, fim)
 console.log("📊 FINAL FILTRADO:", finalDados)
 
 // ✅ AQUI (EXATO)
 window.renderInicializado = false
 render(finalDados, dadosMes)
-carregarMesBackground(dataSelecionada)
-  
+if(!carregandoMes){
+  carregandoMes = true
+  carregarMesBackground(dataSelecionada)
+}  
 // 🔥 FINALIZA LOADING
 dot.classList.remove("loading")
 dot.style.background = "#22c55e"
