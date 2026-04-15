@@ -701,8 +701,11 @@ function render(dados, dadosMes){
   const left = document.getElementById("left")
   const right = document.getElementById("right")
 
+if(!window.renderInicializado){
   left.innerHTML = ""
   right.innerHTML = ""
+  window.renderInicializado = true
+}
 
   const ORDEM = [
     "VILLA",
@@ -1134,8 +1137,11 @@ const finalDados = process(dadosParciais, new Date(), new Date())
 
 console.log("📊 FINAL FILTRADO:", finalDados)
 
+// ✅ AQUI (EXATO)
+window.renderInicializado = false
 render(finalDados, dadosMes)
 carregarMesBackground(dataSelecionada)
+  
 // 🔥 FINALIZA LOADING
 dot.classList.remove("loading")
 dot.style.background = "#22c55e"
