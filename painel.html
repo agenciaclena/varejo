@@ -1138,7 +1138,7 @@ const finalDados = process(dadosParciais, new Date(), new Date())
 console.log("📊 FINAL FILTRADO:", finalDados)
 
 render(finalDados, dadosMes)
-
+carregarMesBackground(dataSelecionada)
 // 🔥 FINALIZA LOADING
 dot.classList.remove("loading")
 dot.style.background = "#22c55e"
@@ -1240,7 +1240,79 @@ function lerJSONSeguro(raw){
 
 
 
+async function carregarMesBackground(dataSelecionada){
 
+  console.log("🚀 INICIANDO BACKGROUND MÊS")
+
+  const cache = carregarCache() || {}
+
+  let dadosMesCache = cache.dadosMes || {}
+  let ultimaPagina = cache.ultimaPaginaMes || 0
+
+  const step = 300
+  let from = ultimaPagina
+
+  const ano = dataSelecionada.split("-")[0]
+  const mesNumero = dataSelecionada.split("-")[1]
+
+  const inicioMes = `${ano}-${mesNumero}-01`
+  const fimMes = new Date(ano, Number(mesNumero), 0)
+    .toISOString()
+    .split("T")[0]
+
+let dadosMesBruto = []
+
+if(cache.dadosMes){
+  console.log("⚡ CONTINUANDO DO CACHE")
+}
+  
+  while(true){
+
+    const { data, error } = await sb
+      .from("resumo_vendas")
+      .select("*")
+      .gte("data", inicioMes)
+      .lte("data", fimMes)
+      .eq("cancelado", false)
+      .order("data", { ascending: true })
+      .range(from, from + step - 1)
+
+    if(error){
+      console.log("❌ ERRO BACKGROUND:", error)
+      break
+    }
+
+    if(!data || data.length === 0){
+      console.log("🏁 FIM BACKGROUND")
+      break
+    }
+
+    dadosMesBruto = dadosMesBruto.concat(data)
+
+    const parcial = process(
+      dadosMesBruto,
+      new Date(inicioMes),
+      new Date(fimMes)
+    )
+
+    // 🔥 salva progresso REAL
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      dados: cache.dados || {},
+      dadosMes: parcial,
+      uultimaPaginaMes: from + step,
+      atualizadoEm: new Date().toISOString()
+    }))
+
+    console.log("💾 SALVANDO MÊS:", from)
+
+    from += step
+
+    // 🔥 não travar UI
+    await new Promise(r => setTimeout(r, 50))
+  }
+
+  console.log("✅ BACKGROUND FINALIZADO")
+}
 
 
 
