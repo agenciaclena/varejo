@@ -233,8 +233,8 @@ await supabase
 
       totalPaginas++
 
-if(pagina > 2){
-  log("⛔ Limite de segurança (2 páginas)")
+if(pagina > 10){
+  log("⛔ Limite de segurança (10 páginas)")
   break
 }
 
