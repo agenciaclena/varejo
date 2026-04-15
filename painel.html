@@ -967,6 +967,10 @@ dadosParciais = [...dadosParciais, ...novos]
   const parcial = process(dadosParciais, new Date(), new Date())
 
 salvarCache(parcial, window.dadosMesCache || {})
+
+// 🔥 RENDER PROGRESSIVO
+render(parcial, window.dadosMesCache || {})
+  
   if(data.length < step){
     console.log("🏁 ÚLTIMA PÁGINA")
     break
