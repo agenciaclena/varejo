@@ -203,7 +203,7 @@ if(inserts.length > 0){
 
   const tInsert = Date.now()
 
-  const chunkSize = 100
+  const chunkSize = 50
 
   for(let i = 0; i < inserts.length; i += chunkSize){
 
@@ -242,8 +242,8 @@ await supabase
 
       totalPaginas++
 
-if(pagina > 10){
-  log("⛔ Limite de segurança (10 páginas)")
+if(pagina > 200){
+  log("⛔ Limite de segurança (200 páginas)")
   break
 }
 
