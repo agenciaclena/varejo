@@ -549,8 +549,15 @@ const isAlmoco = hora >= 10 && hora < 15
 
     
 // NÃO mexe no horário aqui
-if(dLocal < inicio || dLocal > fim) return
-const empBase = v.empresa_id
+const dataStr = dLocal.toISOString().split("T")[0]
+
+const inicioStr = inicio.toISOString().split("T")[0]
+const fimStr = fim.toISOString().split("T")[0]
+
+if(dataStr < inicioStr || dataStr > fimStr) return
+  
+    
+    const empBase = v.empresa_id
 
 const caixa = p.caixa
 let emp = empBase
