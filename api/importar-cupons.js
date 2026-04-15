@@ -154,21 +154,21 @@ export default async function handler(req, res){
 
         log(`🧾 Cupom ${cupom.id} | R$ ${cupom.valorTotal}`)
 
-        const valor_total = Number(cupom.valorTotal || 0)
-        const cancelado = !!cupom.cancelada
+inserts.push({
+  unique_id,
+  empresa,
+  empresa_id: empresa,
+  venda_id: cupom.id,
+  data: cupom.data,
+  cancelado: !!cupom.cancelada,
 
-        inserts.push({
-          unique_id,
-          empresa,
-          empresa_id: empresa,
-          venda_id: cupom.id,
-          data: cupom.data,
-          valor_total,
-          valor_liquido: valor_total,
-          finalizadora_principal: cupom.finalizacoes?.[0]?.descricao || null,
-          cancelado,
-          raw: cupom
-        })
+  // 🔥 DEIXA NULL → BANCO CALCULA
+  valor_total: null,
+  valor_liquido: null,
+  finalizadora_principal: null,
+
+  raw: cupom
+})
 
         if(Array.isArray(cupom.finalizacoes)){
           cupom.finalizacoes.forEach(f=>{
@@ -205,9 +205,11 @@ export default async function handler(req, res){
       // ================= INSERT PAGAMENTOS =================
       if(pagamentos.length > 0){
 
-        await supabase
-          .from("cupons_pagamentos")
-          .insert(pagamentos)
+await supabase
+  .from("cupons_pagamentos")
+  .upsert(pagamentos, {
+    onConflict: "cupom_unique_id,finalizadora_id"
+  })
 
         totalPagamentos += pagamentos.length
 
