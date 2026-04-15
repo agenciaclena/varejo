@@ -530,8 +530,7 @@ const p = parse(v)
 if(!p) return
 
 
-const id = v.unique_id
-    // 🔥 BLOQUEIO DE DUPLICADOS
+const id = `${v.empresa_id}-${v.venda_id}`    // 🔥 BLOQUEIO DE DUPLICADOS
     if(!id) return
     if(seen.has(id)) return
     seen.add(id)
