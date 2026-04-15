@@ -930,8 +930,8 @@ dadosParciais = Object.values(
 )
   const parcial = process(dadosParciais, inicio, fim)
 
-  render(parcial, window.dadosMesCache || {})
 salvarCache(parcial, window.dadosMesCache || {})
+  salvarCache(parcial, window.dadosMesCache || {})
   if(data.length < step){
     console.log("🏁 ÚLTIMA PÁGINA")
     break
@@ -1079,8 +1079,13 @@ salvarCache(
   dadosMes
 )
 // 🔥 RENDER FINAL COMPLETO
-render(process(dadosParciais, inicio, fim), dadosMes)
 const finalDados = process(dadosParciais, inicio, fim)
+
+console.log("📊 FINAL FILTRADO:", finalDados)
+
+render(finalDados, dadosMes)
+  
+  const finalDados = process(dadosParciais, inicio, fim)
 
 salvarCache(finalDados, dadosMes)
 // 🔥 FINALIZA LOADING
