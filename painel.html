@@ -890,8 +890,9 @@ while(true){
 
   await new Promise(r => requestAnimationFrame(r))
 
-let query = sb
 const dataSelecionada = document.getElementById("data").value
+
+let query = sb
   .from("resumo_vendas")
   .select("*")
   .eq("data", dataSelecionada)
