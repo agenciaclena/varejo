@@ -341,8 +341,8 @@ button:hover{
 </header>
 
 <div class="controls">
-  <input type="datetime-local" id="inicio">
-  <input type="datetime-local" id="fim">
+<input type="date" id="inicio">
+<input type="date" id="fim">
   <button onclick="reload()">Aplicar</button>
 </div>
 
@@ -1100,16 +1100,18 @@ dot.style.background = "#22c55e"
 dot.style.boxShadow = "0 0 10px #22c55e"
 
 console.log("✅ FINALIZADO LOAD")
-
 document.getElementById("periodo").innerText =
-  `Período: ${inicio.toLocaleString()} → ${fim.toLocaleString()}`
+  `Período: ${inicio.toISOString().split("T")[0]} → ${fim.toISOString().split("T")[0]}`
 
 }
 // ================= RELOAD =================
 function reload(){
 
-  const inicio = new Date(document.getElementById("inicio").value)
-  const fim = new Date(document.getElementById("fim").value)
+const inicioStr = document.getElementById("inicio").value
+const fimStr = document.getElementById("fim").value
+
+const inicio = new Date(inicioStr + "T00:00:00")
+const fim = new Date(fimStr + "T23:59:59")
 
   load(inicio,fim)
 }
@@ -1122,16 +1124,13 @@ function formatLocal(date){
 
   return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
+function formatDateOnly(date){
+  const pad = n => String(n).padStart(2,"0")
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`
+}
 
-document.getElementById("inicio").value = formatLocal(t.inicio)
-document.getElementById("fim").value = formatLocal(t.fim)
-
-  
-
-
-
-document.getElementById("inicio").value = formatLocal(t.inicio)
-document.getElementById("fim").value = formatLocal(t.fim)
+document.getElementById("inicio").value = formatDateOnly(t.inicio)
+document.getElementById("fim").value = formatDateOnly(t.fim)
 
 // 🔥 AQUI ENTRA O CACHE
 const cache = carregarCache()
