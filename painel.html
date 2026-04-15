@@ -548,11 +548,9 @@ const isAlmoco = hora >= 10 && hora < 15
 
     
 // NÃO mexe no horário aqui
-const dataStr = dLocal.toLocaleDateString("sv-SE")
-const inicioStr = inicio.toLocaleDateString("sv-SE")
-const fimStr = fim.toLocaleDateString("sv-SE")
+const dataVenda = new Date(p.data)
 
-if(dataStr < inicioStr || dataStr > fimStr) return
+if(dataVenda < inicio || dataVenda > fim) return
   
     
     const empBase = v.empresa_id
@@ -879,8 +877,8 @@ while(true){
 let query = sb
 .from("resumo_vendas")
 .select("*")
-.gte("data", inicioISO.split("T")[0])
-.lte("data", fimISO.split("T")[0])
+.gte("criado_em", inicioISO)
+.lte("criado_em", fimISO)
   .order("data", { ascending: true })
   .order("id", { ascending: true })
   .limit(step)
