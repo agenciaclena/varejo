@@ -899,10 +899,12 @@ while(true){
   await new Promise(r => requestAnimationFrame(r))
 
 let query = sb
+const dataSelecionada = document.getElementById("inicio").value
+
 .from("resumo_vendas")
 .select("*")
-.gte("data", inicio.toISOString().split("T")[0])
-.lte("data", fim.toISOString().split("T")[0])
+.eq("data", dataSelecionada)
+.eq("cancelado", false)
 .order("data", { ascending: true })
 .order("id", { ascending: true })
 .limit(step)
