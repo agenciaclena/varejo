@@ -549,6 +549,7 @@ function process(data, inicio, fim){
 
 const p = parse(v)
 if(!p || !p.data) return
+
 const raw = typeof v.raw === "object"
   ? v.raw
   : lerJSONSeguro(v.raw)
