@@ -933,7 +933,7 @@ const right = document.getElementById("right")
 left.innerHTML = ""
 right.innerHTML = ""
 let from = 0
-const step = 500
+const step = 1000
 
 // 🔥 CACHE DO MÊS
 window.dadosMesCache = {}
@@ -986,8 +986,7 @@ lastDate = data[data.length - 1].data
 lastId = data[data.length - 1].id
   console.log(`📄 PAGINA ${from} → ${from + step} | ITENS: ${data.length}`)
 
-const novos = data
-dadosParciais = [...dadosParciais, ...novos]
+dadosParciais = dadosParciais.concat(data)
 const inicio = new Date(dataSelecionada + "T00:00:00")
 const fim = new Date(dataSelecionada + "T23:59:59")
 
@@ -995,9 +994,9 @@ const parcial = process(dadosParciais, inicio, fim)
 salvarCache(parcial, window.dadosMesCache || {})
 
 // 🔥 RENDER PROGRESSIVO
-if(from === 0){
-  render(parcial, window.dadosMesCache || {})
-}
+render(parcial, window.dadosMesCache || {})
+
+  
   if(data.length < step){
     console.log("🏁 ÚLTIMA PÁGINA")
     break
