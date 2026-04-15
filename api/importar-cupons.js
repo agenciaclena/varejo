@@ -94,7 +94,8 @@ export default async function handler(req, res){
     const ids = new Set()
 
     log("📡 INICIANDO PAGINAÇÃO...\n")
-
+     let paginaSemNovos = 0
+let ultimaPaginaHash = null
     // ================= LOOP =================
     while(true){
 
@@ -132,10 +133,20 @@ if(!response || !response.ok){
 
       log(`📄 Página ${pagina} | Itens: ${items.length} | Tempo: ${tempoReq}s`)
 
-      if(items.length === 0){
-        log("🏁 Última página alcançada")
-        break
-      }
+if(items.length === 0){
+  log("🏁 Última página vazia - FIM")
+  break
+}
+
+// 🔍 Detecta repetição de página (API bug comum)
+const paginaHash = JSON.stringify(items.map(i => i.id))
+
+if(paginaHash === ultimaPaginaHash){
+  log("⛔ Página repetida detectada - PARANDO")
+  break
+}
+
+ultimaPaginaHash = paginaHash
 
       const inserts = []
       const pagamentos = []
@@ -144,10 +155,9 @@ if(!response || !response.ok){
 
         const unique_id = empresa + "_" + cupom.id
 
-        if(ids.has(unique_id)){
-          log(`⚠️ Cupom duplicado ignorado: ${cupom.id}`)
-          continue
-        }
+ if(ids.has(unique_id)){
+  continue
+}
 
         ids.add(unique_id)
 
@@ -180,6 +190,29 @@ inserts.push({
         }
       }
 
+
+
+
+
+// 🚨 CONTROLE DE FIM INTELIGENTE
+if(inserts.length === 0){
+  paginaSemNovos++
+
+  log(`⚠️ Página sem novos cupons (${paginaSemNovos}/3)`)
+
+  if(paginaSemNovos >= 3){
+    log("⛔ Nenhum dado novo nas últimas páginas - FINALIZANDO")
+    break
+  }
+}else{
+  paginaSemNovos = 0
+}
+
+
+
+
+
+      
       // ================= INSERT CUPONS =================
       if(inserts.length > 0){
 
@@ -230,8 +263,23 @@ await supabase
     const tempoTotal = ((Date.now() - startTotal)/1000).toFixed(2)
 
     log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    log("✅ FINALIZADO COM SUCESSO")
-    log(`📊 Total cupons: ${totalCupons}`)
+log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+log("🎉 IMPORTAÇÃO FINALIZADA")
+log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+log(`🏢 Empresa: ${empresa}`)
+log(`📅 Período: ${inicio} → ${fim}`)
+
+log("\n📊 RESUMO:")
+log(`🧾 Cupons importados: ${totalCupons}`)
+log(`💳 Pagamentos importados: ${totalPagamentos}`)
+log(`📄 Páginas processadas: ${totalPaginas}`)
+
+log(`\n⏱ Tempo total: ${tempoTotal}s`)
+
+log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+  
+  log(`📊 Total cupons: ${totalCupons}`)
     log(`💳 Total pagamentos: ${totalPagamentos}`)
     log(`📄 Total páginas: ${totalPaginas}`)
     log(`⏱ Tempo total: ${tempoTotal}s`)
