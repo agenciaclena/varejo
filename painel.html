@@ -884,9 +884,11 @@ while(true){
 let query = sb
 .from("resumo_vendas")
 .select("*")
-  .order("data", { ascending: true })
-  .order("id", { ascending: true })
-  .limit(step)
+.gte("data", inicioISO.split("T")[0])
+.lte("data", fimISO.split("T")[0])
+.order("data", { ascending: true })
+.order("id", { ascending: true })
+.limit(step)
 
   // 🔥 CURSOR REAL
 if(lastDate){
