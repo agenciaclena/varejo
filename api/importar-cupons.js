@@ -85,7 +85,7 @@ export default async function handler(req, res){
 
     // ================= VARIÁVEIS =================
     let pagina = 1
-    const count = 200
+    const count = 500
 
     let totalCupons = 0
     let totalPagamentos = 0
@@ -233,8 +233,8 @@ await supabase
 
       totalPaginas++
 
-if(pagina > 500){
-  log("⛔ Limite de segurança (500 páginas)")
+if(pagina > 2){
+  log("⛔ Limite de segurança (2 páginas)")
   break
 }
 
