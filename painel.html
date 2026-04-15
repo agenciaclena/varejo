@@ -967,8 +967,8 @@ lastId = data[data.length - 1].id
 
 const novos = data
 dadosParciais = [...dadosParciais, ...novos]
-  const parcial = process(dadosParciais, new Date(), new Date())
-
+const t = turno()
+const parcial = process(dadosParciais, t.inicio, t.fim)
 salvarCache(parcial, window.dadosMesCache || {})
 
 // 🔥 RENDER PROGRESSIVO
@@ -1133,8 +1133,8 @@ salvarCache(
   dadosMes
 )
 // 🔥 RENDER FINAL COMPLETO
-const finalDados = process(dadosParciais, new Date(), new Date())
-
+const t = turno()
+const finalDados = process(dadosParciais, t.inicio, t.fim)
 console.log("📊 FINAL FILTRADO:", finalDados)
 
 // ✅ AQUI (EXATO)
