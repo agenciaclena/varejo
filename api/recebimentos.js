@@ -69,7 +69,9 @@ const inicio = new Date(agora.getTime() - (30 * 60 * 1000))
 
 // 🔥 FORMATAR ISO SEM MILLISECOND
 function toISO(d){
-  return d.toISOString().slice(0,19)
+  const pad = n => String(n).padStart(2,"0")
+
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
 const inicioISO = toISO(inicio)
