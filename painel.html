@@ -508,8 +508,15 @@ function turno(){
 
 // ================= PARSE =================
 function parse(v){
-  const raw = v.raw
-if(!raw) return null
+
+  const raw = typeof v.raw === "object"
+    ? v.raw
+    : lerJSONSeguro(v.raw)
+
+  if(!raw) return null
+
+
+  
   // 🔥 PRIORIDADE 1: data completa do cupom
   let dataHora = raw?.dataHoraFechamentoCupom
 
@@ -540,9 +547,12 @@ function process(data, inicio, fim){
 
   data.forEach(v=>{
 
-const raw = typeof v.raw === "object" ? v.raw : lerJSONSeguro(v.raw)
-  if(!raw) return
-  
+const p = parse(v)
+if(!p || !p.data) return
+const raw = typeof v.raw === "object"
+  ? v.raw
+  : lerJSONSeguro(v.raw)
+
 const id = raw?.id
     // 🔥 BLOQUEIO DE DUPLICADOS
     if(!id) return
@@ -553,17 +563,18 @@ const p = parse(v)
 if(!p || !p.data) return
 
 const d = new Date(p.data)
-d.setHours(d.getHours() - 3)
-  const hora = d.getHours()
 
+const dLocal = new Date(
+  d.toLocaleString("en-US", { timeZone: "America/Bahia" })
+)
+const hora = dLocal.getHours()
 const isAlmoco = hora >= 10 && hora < 15
 
 
 
     
 // NÃO mexe no horário aqui
-if(d < inicio || d > fim) return
-
+if(dLocal < inicio || dLocal > fim) return
 const empBase = v.empresa_id
 
 const caixa = Number(raw?.caixa || raw?.numeroCaixa || raw?.caixaId || 0)
@@ -611,7 +622,7 @@ const troco = Number(f.troco || 0)
 const valor = valorBruto - troco
   
   const idf = Number(f.finalizadoraId)
-const nome = MAPA[empBase]?.[idf] || "OUTROS"
+const nome = MAPA?.[empBase]?.[idf] || "OUTROS"
   result[emp].finais[nome] =
     (result[emp].finais[nome] || 0) + valor
 })
