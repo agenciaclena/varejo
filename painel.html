@@ -869,7 +869,6 @@ function salvarCache(dados, dadosMes){
 async function load(dataSelecionada){
 
 console.log("🚀 INICIANDO LOAD")
-console.log("📅 Período:", inicio, "→", fim)
 
 const dot = document.getElementById("statusDot")
 
@@ -877,9 +876,6 @@ dot.classList.add("loading")
 dot.style.background = "#f59e0b"
 dot.style.boxShadow = "0 0 10px #f59e0b"
 
-// 🔥 IMPORTANTE
-const inicioISO = inicio.toISOString()
-const fimISO = fim.toISOString()
 
 let dadosParciais = []
 let from = 0
@@ -895,8 +891,7 @@ while(true){
   await new Promise(r => requestAnimationFrame(r))
 
 let query = sb
-const dataSelecionada = document.getElementById("inicio").value
-
+const dataSelecionada = document.getElementById("data").value
 .from("resumo_vendas")
 .select("*")
 .eq("data", dataSelecionada)
@@ -1142,8 +1137,8 @@ if(cache){
 }
 
 // 🔄 SEMPRE CARREGA DO BANCO DEPOIS
-load(t.inicio,t.fim)  
-let carregando = false
+load(document.getElementById("data").value)
+  let carregando = false
 
 
 
