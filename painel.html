@@ -969,8 +969,9 @@ dadosParciais = [...dadosParciais, ...novos]
 salvarCache(parcial, window.dadosMesCache || {})
 
 // 🔥 RENDER PROGRESSIVO
-render(parcial, window.dadosMesCache || {})
-  
+if(dadosParciais.length > 100){
+  render(parcial, window.dadosMesCache || {})
+}  
   if(data.length < step){
     console.log("🏁 ÚLTIMA PÁGINA")
     break
