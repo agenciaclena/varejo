@@ -557,8 +557,15 @@ const isAlmoco = hora >= 10 && hora < 15
 const dataVenda = new Date(`${v.data}T${v.hora || "00:00:00"}`)
 
 // 🔥 COMPARAÇÃO DIRETA (SEM ISO, SEM TIMEZONE)
-if(dataVenda < inicio || dataVenda > fim) return
-  
+// AJUSTE DE TURNO DIRETO NA DATA
+const dataStr = v.data
+
+if(
+  dataStr < inicio.toISOString().split("T")[0] ||
+  dataStr > fim.toISOString().split("T")[0]
+){
+  return
+}  
     
     const empBase = v.empresa_id
 
@@ -884,8 +891,8 @@ while(true){
 let query = sb
 .from("resumo_vendas")
 .select("*")
-.gte("data", inicioISO.split("T")[0])
-.lte("data", fimISO.split("T")[0])
+.gte("data", inicio.toISOString().split("T")[0])
+.lte("data", fim.toISOString().split("T")[0])
 .order("data", { ascending: true })
 .order("id", { ascending: true })
 .limit(step)
