@@ -615,20 +615,27 @@ const dataFim = fim.toISOString().split("T")[0]
 
 
     
-    const empBase = v.empresa_id
-
+   const empBase = v.empresa_id
 const caixa = p.caixa
-let emp = empBase
 
-if(empBase === "VAREJO_URL_MERCATTO"){
+function normalizarEmpresa(empBase, caixa){
 
-  if(caixa >= 1 && caixa <= 5){
-    emp = "MERCATTO EMPÓRIO"
-  } else if(caixa >= 6){
-    emp = "MERCATTO RESTAURANTE"
+  const nome = (empBase || "").trim().toUpperCase()
+
+  if(nome.includes("DELICIA")) return "DELICIA"
+  if(nome.includes("VILLA")) return "VILLA"
+  if(nome.includes("PADARIA")) return "PADARIA"
+
+  if(nome.includes("MERCATTO")){
+    if(caixa >= 1 && caixa <= 5) return "MERCATTO EMPÓRIO"
+    if(caixa >= 6) return "MERCATTO RESTAURANTE"
   }
 
+  return nome
 }
+
+const emp = normalizarEmpresa(empBase, caixa)
+  
     if(!result[emp]){
       result[emp]={
 total:0,
@@ -720,10 +727,10 @@ function render(dados, dadosMes){
 
   ORDEM.forEach(nomeBusca=>{
 
-    const emp = Object.keys(dados).find(e=>e.includes(nomeBusca))
-    if(!emp) return
+const emp = nomeBusca
+const d = dados[emp]
 
-    const d = dados[emp]
+if(!d) return
     const dMes = dadosMes[emp] || { total:0 }
 
   const card = `
