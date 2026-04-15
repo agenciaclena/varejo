@@ -213,7 +213,6 @@ button:hover{
 
 </div>
 
-
 <script>
 
 const empresas = [
@@ -223,24 +222,7 @@ const empresas = [
   {nome:"DELICIA", value:"VAREJO_URL_DELICIA"}
 ]
 
-// 🧠 CONTROLE TOTAL
-const controle = {}
-
-function resetControle(nome){
-  controle[nome] = {
-    repetidas:0,
-    total:0,
-    cupons:0,
-    cancelados:0,
-    paginas:0,
-    finalizadoras:new Set(),
-    inicio:Date.now(),
-    erro:null,
-    finalizado:false
-  }
-}
-
-// 🎨 LOG
+// LOG
 function addLog(nome, text){
 
   const logDiv = document.getElementById("log_"+nome)
@@ -260,139 +242,50 @@ function addLog(nome, text){
   logDiv.appendChild(el)
   logDiv.scrollTop = logDiv.scrollHeight
 
-  processarDados(nome, text)
+  atualizarKPI(nome, text)
 }
 
-// 🧠 PROCESSAMENTO
-function processarDados(nome, linha){
+// KPI
+function atualizarKPI(nome, linha){
 
-  const c = controle[nome]
-  if(c.finalizado) return
-
-  // REPETIÇÃO
-  if(linha.includes("Página repetida")){
-    c.repetidas++
-
-    if(c.repetidas >= 2){
-      finalizarEmpresa(nome)
-      return
-    }
-  }
-
-  // CUPOM
+  // TOTAL (pega valor do cupom)
   if(linha.includes("🧾 Cupom")){
-    c.cupons++
-
     const valor = linha.match(/R\$ ([\d\.]+)/)
     if(valor){
-      c.total += Number(valor[1])
+      let atual = Number(
+        document.getElementById("total_"+nome).innerText
+        .replace("R$","")
+        .replace(/\./g,"")
+        .replace(",",".")
+      ) || 0
+
+      atual += Number(valor[1])
+
+      document.getElementById("total_"+nome).innerText =
+        atual.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
     }
   }
 
-  // CANCELADOS
-  if(linha.toLowerCase().includes("cancelado")){
-    c.cancelados++
+  // DIA
+  if(linha.includes("Período")){
+    const d = linha.split("→")[0].split(":")[1]
+    if(d){
+      document.getElementById("dia_"+nome).innerText = d.trim()
+    }
   }
 
-  // PAGINAS
-  if(linha.includes("Página")){
-    c.paginas++
-  }
-
-  // FINALIZADORAS
-  const f = linha.match(/finalizadora_id[:= ](\d+)/)
-  if(f){
-    c.finalizadoras.add(f[1])
-  }
-
-  // ERRO
-  if(linha.includes("❌")){
-    c.erro = linha
-  }
 }
 
-// 🎯 POPUP FINAL PROFISSIONAL
-function finalizarEmpresa(nome){
-
-  const c = controle[nome]
-  if(c.finalizado) return
-
-  c.finalizado = true
-
-  const tempo = ((Date.now() - c.inicio)/1000).toFixed(1)
-
-  const card = document.getElementById("log_"+nome).parentElement
-
-  const overlay = document.createElement("div")
-  overlay.style.position = "absolute"
-  overlay.style.inset = "0"
-  overlay.style.background = "rgba(0,0,0,0.96)"
-  overlay.style.display = "flex"
-  overlay.style.alignItems = "center"
-  overlay.style.justifyContent = "center"
-  overlay.style.zIndex = "20"
-
-  const box = document.createElement("div")
-  box.style.background = "#0f172a"
-  box.style.padding = "25px"
-  box.style.borderRadius = "12px"
-  box.style.width = "85%"
-  box.style.maxWidth = "320px"
-  box.style.textAlign = "center"
-  box.style.boxShadow = "0 0 30px rgba(0,0,0,0.6)"
-
-  box.innerHTML = `
-    <h2 style="margin:0 0 10px 0;color:#22c55e">✔ IMPORTAÇÃO FINALIZADA</h2>
-
-    <div style="font-size:13px;margin-bottom:10px;opacity:0.7">${nome}</div>
-
-    <div style="display:grid;gap:6px;font-size:13px">
-
-      <div>🧾 <b>Cupons:</b> ${c.cupons}</div>
-      <div>❌ <b>Cancelados:</b> ${c.cancelados}</div>
-      <div>📄 <b>Páginas:</b> ${c.paginas}</div>
-      <div>⏱ <b>Tempo:</b> ${tempo}s</div>
-
-      <div style="margin-top:8px;color:#22c55e;font-size:15px">
-        💰 ${c.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
-      </div>
-
-      <div style="margin-top:10px;font-size:12px">
-        <b>Finalizadoras:</b><br>
-        ${[...c.finalizadoras].join(", ") || "-"}
-      </div>
-
-      ${
-        c.erro
-        ? `<div style="margin-top:10px;color:#ef4444;font-size:12px">${c.erro}</div>`
-        : ""
-      }
-
-    </div>
-
-    <button onclick="this.closest('.overlay').remove()"
-      style="margin-top:15px;padding:8px 12px;background:#22c55e;border:none;border-radius:6px;cursor:pointer;font-weight:600">
-      Fechar
-    </button>
-  `
-
-  overlay.classList.add("overlay")
-  overlay.appendChild(box)
-
-  card.style.position = "relative"
-  card.appendChild(overlay)
-}
-
-// 🚀 EXECUÇÃO
+// EXECUÇÃO
 async function executarEmpresa(emp){
 
   const nome = emp.nome
   const status = document.getElementById("status_"+nome)
   const bar = document.getElementById("bar_"+nome)
 
-  resetControle(nome)
-
   document.getElementById("log_"+nome).innerHTML = ""
+  document.getElementById("total_"+nome).innerText = "R$ 0,00"
+  document.getElementById("dia_"+nome).innerText = "-"
 
   bar.style.width = "0%"
   status.innerText = "Executando..."
@@ -414,7 +307,6 @@ async function executarEmpresa(emp){
   let progresso = 0
 
   while(true){
-
     const { done, value } = await reader.read()
     if(done) break
 
@@ -423,31 +315,22 @@ async function executarEmpresa(emp){
     const linhas = buffer.split("\n")
     buffer = linhas.pop()
 
-    for(const linha of linhas){
+    linhas.forEach(linha=>{
       if(linha.trim()){
         addLog(nome,linha)
-
-        // 🔥 SE FINALIZOU → PARA LOOP
-        if(controle[nome].finalizado){
-          status.innerText = "Finalizado"
-          bar.style.width = "100%"
-          return
-        }
 
         progresso += 2
         if(progresso > 100) progresso = 100
         bar.style.width = progresso + "%"
       }
-    }
+    })
   }
 
-  status.innerText = "Finalizado"
   bar.style.width = "100%"
-
-  finalizarEmpresa(nome)
+  status.innerText = "Finalizado"
 }
 
-// 🔥 EXECUTA TODAS
+// EXECUTAR TODAS
 async function executarTudo(){
   await Promise.all(empresas.map(e => executarEmpresa(e)))
 }
