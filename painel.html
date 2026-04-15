@@ -1087,17 +1087,15 @@ if(lastDate){
   const { data, error } = await query
 if(error){
   console.error("❌ ERRO PAGINA:", error)
-const mes = mesOperacional()
+
   const cache = carregarCache()
 
+  // 🔥 sempre renderiza o que tiver
+  render(cache?.dados || {}, cache?.dadosMes || {})
 
-  
-if(!window.renderInicializado){
-  render(cache.dados || {}, cache.dadosMes || {})
-  window.renderInicializado = true
-}
+  carregandoAgora = false // 🔥 ESSENCIAL (sem isso trava tudo)
 
-  return // 🔥 PARA TUDO
+  return
 }
 
   if(!data || data.length === 0){
