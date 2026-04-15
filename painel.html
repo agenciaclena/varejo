@@ -329,6 +329,38 @@ button:hover{
 #popupOverlay.active{
   display:flex;
 }
+
+.loader{
+  width:16px;
+  height:16px;
+  border:2px solid #ffffff;
+  border-top:2px solid transparent;
+  border-radius:50%;
+  display:none;
+  animation:spin 0.7s linear infinite;
+}
+
+@keyframes spin{
+  from{ transform:rotate(0deg); }
+  to{ transform:rotate(360deg); }
+}
+
+button.loading{
+  pointer-events:none;
+  opacity:0.7;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+button.loading #btnText{
+  display:none;
+}
+
+button.loading #btnLoader{
+  display:block;
+}
 </style>
 </head>
 
@@ -342,8 +374,10 @@ button:hover{
 
 <div class="controls">
 <input type="date" id="data">
-<button onclick="reload()">Aplicar</button>
-</div>
+<button id="btnAplicar" onclick="reload()">
+  <span id="btnText">Aplicar</span>
+  <span id="btnLoader" class="loader"></span>
+</button></div>
 
 <div id="periodo" style="
   padding:10px 15px;
@@ -1116,11 +1150,20 @@ document.getElementById("periodo").innerText =
 
 }
 // ================= RELOAD =================
-function reload(){
+async function reload(){
 
-const data = document.getElementById("data").value
+  const btn = document.getElementById("btnAplicar")
+  const data = document.getElementById("data").value
 
-load(data)
+  btn.classList.add("loading")
+
+  try{
+    await load(data)
+  }catch(e){
+    console.error(e)
+  }
+
+  btn.classList.remove("loading")
 }
 
 // ================= START =================
