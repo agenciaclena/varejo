@@ -61,8 +61,26 @@ export default async function handler(req, res) {
     // ================= LOOP PAGINAÇÃO =================
     while (true) {
 
-const url = `${baseURL}?pagina=${pagina}&count=${count}&q=dataHoraFechamentoCupom=ge=${dataInicio}T00:00:00;dataHoraFechamentoCupom=le=${dataFim}T23:59:59`
-  console.log(`\n📡 Página ${pagina}`)
+// 🔥 AGORA
+const agora = new Date()
+
+// 🔥 -30 minutos
+const inicio = new Date(agora.getTime() - (30 * 60 * 1000))
+
+// 🔥 FORMATAR ISO SEM MILLISECOND
+function toISO(d){
+  return d.toISOString().slice(0,19)
+}
+
+const inicioISO = toISO(inicio)
+const fimISO = toISO(agora)
+
+// 🔥 URL FINAL
+const url = `${baseURL}?pagina=${pagina}&count=${count}&q=dataHoraFechamentoCupom=ge=${inicioISO};dataHoraFechamentoCupom=le=${fimISO}&sort=dataHoraFechamentoCupom`
+  
+      
+      
+      console.log(`\n📡 Página ${pagina}`)
       console.log(`➡️ Start: ${start}`)
       console.log(`➡️ URL: ${url}`)
 
