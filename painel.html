@@ -558,14 +558,11 @@ const dataVenda = new Date(`${v.data}T${v.hora || "00:00:00"}`)
 
 // 🔥 COMPARAÇÃO DIRETA (SEM ISO, SEM TIMEZONE)
 // AJUSTE DE TURNO DIRETO NA DATA
-const dataStr = v.data
+const dataHora = new Date(`${v.data}T${v.hora || "00:00:00"}`)
 
-if(
-  dataStr < inicio.toISOString().split("T")[0] ||
-  dataStr > fim.toISOString().split("T")[0]
-){
+if(dataHora < inicio || dataHora > fim){
   return
-}  
+}
     
     const empBase = v.empresa_id
 
