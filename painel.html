@@ -566,7 +566,14 @@ const fimBahia = new Date(
   fim.toLocaleString("en-US", { timeZone: "America/Bahia" })
 )
 
-if(dataHora < inicioBahia || dataHora > fimBahia){
+// 🔥 DATA PURA (IGUAL SQL)
+const dataRegistro = v.data
+
+const dataInicio = inicio.toISOString().split("T")[0]
+const dataFim = fim.toISOString().split("T")[0]
+
+// 👉 FILTRO POR DATA (IGUAL BANCO)
+if(dataRegistro < dataInicio || dataRegistro > dataFim){
   return
 }
     
