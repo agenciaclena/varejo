@@ -701,12 +701,6 @@ function render(dados, dadosMes){
   const left = document.getElementById("left")
   const right = document.getElementById("right")
 
-if(!window.renderInicializado){
-  left.innerHTML = ""
-  right.innerHTML = ""
-  window.renderInicializado = true
-}
-
   const ORDEM = [
     "VILLA",
     "DELICIA",
@@ -915,6 +909,11 @@ dot.style.boxShadow = "0 0 10px #f59e0b"
 
 
 let dadosParciais = []
+const left = document.getElementById("left")
+const right = document.getElementById("right")
+
+left.innerHTML = ""
+right.innerHTML = ""
 let from = 0
 const step = 50
 
@@ -972,9 +971,8 @@ const parcial = process(dadosParciais, t.inicio, t.fim)
 salvarCache(parcial, window.dadosMesCache || {})
 
 // 🔥 RENDER PROGRESSIVO
-if(dadosParciais.length > 100){
-  render(parcial, window.dadosMesCache || {})
-}  
+render(parcial, window.dadosMesCache || {})
+  
   if(data.length < step){
     console.log("🏁 ÚLTIMA PÁGINA")
     break
