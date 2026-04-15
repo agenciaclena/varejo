@@ -890,7 +890,6 @@ while(true){
 
   await new Promise(r => requestAnimationFrame(r))
 
-const dataSelecionada = document.getElementById("data").value
 
 let query = sb
   .from("resumo_vendas")
@@ -990,10 +989,10 @@ const ano = dataSelecionada.split("-")[0]
 const mesNumero = dataSelecionada.split("-")[1]
 
 // 🔥 INICIO DO MÊS
-const inicioMes = `${ano}-${mes}-01`
+const inicioMes = `${ano}-${mesNumero}-01`
 
 // 🔥 FIM DO MÊS (dinâmico)
-const fimMes = new Date(ano, mes, 0)
+const fimMes = new Date(ano, Number(mesNumero), 0)
   .toISOString()
   .split("T")[0]
 
