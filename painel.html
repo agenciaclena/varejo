@@ -917,29 +917,41 @@ return `
     const pct1 = Math.min((dMes.total/meta.prata)*100,100)
     const pct2 = Math.min((dMes.total/meta.ouro)*100,100)
 
-    return `
-      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-        <div class="bola prata" style="--p:${pct1}%">
-          <span>${pct1.toFixed(0)}%</span>
-        </div>
-      </div>
+   return `
+  <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+    
+    <div class="bola prata" style="--p:${pct1}%">
+      <span>${pct1.toFixed(0)}%</span>
+    </div>
 
-      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-        <div class="bola ouro" style="--p:${pct2}%">
-          <span>${pct2.toFixed(0)}%</span>
-        </div>
-      </div>
+    <div style="font-size:10px;color:#94a3b8;font-weight:700">
+      ${brl(meta.prata)}
+    </div>
 
-      <!-- 🔥 AGORA SIM: EMBAIXO DAS BOLAS -->
-<div class="mini-ticket">
-  <div class="mini-label">Ticket Médio</div>
-
-  <div class="mini-valores">
-    <span class="mini-vendas">${d.vendas}</span>
-    <span class="mini-ticket-text">${brl(ticketMedio)}</span>
   </div>
-</div>
-    `
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+
+    <div class="bola ouro" style="--p:${pct2}%">
+      <span>${pct2.toFixed(0)}%</span>
+    </div>
+
+    <div style="font-size:10px;color:#94a3b8;font-weight:700">
+      ${brl(meta.ouro)}
+    </div>
+
+  </div>
+
+  <!-- 🔥 mantém o ticket -->
+  <div class="mini-ticket">
+    <div class="mini-label">Ticket Médio</div>
+
+    <div class="mini-valores">
+      <span class="mini-vendas">${d.vendas}</span>
+      <span class="mini-ticket-text">${brl(ticketMedio)}</span>
+    </div>
+  </div>
+`
   })()}
 </div>
 
