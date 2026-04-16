@@ -1362,13 +1362,15 @@ if(inputData){
 }
   console.log("📅 Data automática:", hoje)
 
-  await iniciarAutoImport()
+await iniciarAutoImport()
+
+// 🔥 1. CARREGA COMPLETO (uma vez só)
+await load(hoje)
+
+// 🔥 2. ATUALIZA LEVE (sem piscar)
 setInterval(() => {
   atualizarLeve()
 }, 30000)
-})
-
-
   
 let carregando = false
 
