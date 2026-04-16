@@ -147,7 +147,7 @@ async function buscar(){
   document.getElementById("log").innerHTML = ""
   log("🔍 Buscando cupons...")
 
-  const res = await fetch("/api/importar-cupons",{
+  const res = await fetch("/api/cupons-vf-pro",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({
@@ -186,7 +186,7 @@ async function inserir10(){
 
   const lote = cupons.slice(ponteiro, ponteiro + 10)
 
-  await fetch("/api/importar-cupons",{
+  await fetch("/api/cupons-vf-pro",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({
