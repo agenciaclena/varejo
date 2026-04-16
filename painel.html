@@ -1738,16 +1738,18 @@ async function atualizarLeve(){
       .select("*")
       .gte("data", hoje)
       .eq("cancelado", false)
-      .order("id", { ascending: false })
-      .limit(200) // 🔥 só últimos registros
-
+.gt("id", window.ultimoId || 0)
+.order("id", { ascending: true })
+.limit(100)
     if(error){
       console.error("❌ ERRO LEVE:", error)
       return
     }
 
     if(!data || data.length === 0) return
-
+if(data.length > 0){
+  window.ultimoId = data[data.length - 1].id
+}
     // 🔥 processa só o novo
     const inicio = new Date(hoje + "T00:00:00")
     const fim = new Date(hoje + "T23:59:59")
@@ -1765,10 +1767,10 @@ async function atualizarLeve(){
       const atual = window.dadosCache[emp]
       const novo = novoProcessado[emp]
 
-      atual.total = novo.total
-      atual.vendas = novo.vendas
-      atual.cancelados = novo.cancelados
-      atual.valorCancelado = novo.valorCancelado
+atual.total += novo.total
+atual.vendas += novo.vendas
+atual.cancelados += novo.cancelados
+atual.valorCancelado += novo.valorCancelado
       atual.almocoTotal = novo.almocoTotal
       atual.almocoVendas = novo.almocoVendas
       atual.finais = novo.finais
