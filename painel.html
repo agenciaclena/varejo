@@ -1127,6 +1127,12 @@ render(parcial, window.dadosMesCache || {})
 // 🔥 FINAL
 console.log("📊 TOTAL CARREGADO:", dadosParciais.length)
 
+// ✅ DEFINE BASE PARA ATUALIZAÇÃO LEVE
+if(dadosParciais.length > 0){
+  window.ultimoId = dadosParciais[dadosParciais.length - 1].id
+}
+
+  
 // 🔥 MÊS (usa os mesmos dados já carregados)
 const cache = carregarCache()
 
