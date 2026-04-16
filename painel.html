@@ -1355,22 +1355,25 @@ window.addEventListener("DOMContentLoaded", async () => {
   const t = turno()
   const hoje = formatDateOnly(t.inicio)
 
-const inputData = document.getElementById("data")
+  const inputData = document.getElementById("data")
 
-if(inputData){
-  inputData.value = hoje
-}
+  if(inputData){
+    inputData.value = hoje
+  }
+
   console.log("📅 Data automática:", hoje)
 
-await iniciarAutoImport()
+  await iniciarAutoImport()
 
-// 🔥 1. CARREGA COMPLETO (uma vez só)
-await load(hoje)
+  // 🔥 CARREGA DADOS COMPLETOS
+  await load(hoje)
 
-// 🔥 2. ATUALIZA LEVE (sem piscar)
-setInterval(() => {
-  atualizarLeve()
-}, 30000)
+  // 🔥 ATUALIZAÇÃO LEVE
+  setInterval(() => {
+    atualizarLeve()
+  }, 30000)
+
+})
   
 let carregando = false
 
