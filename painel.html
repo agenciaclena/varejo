@@ -1776,14 +1776,19 @@ atual.vendas += novo.vendas
 atual.cancelados += novo.cancelados
 atual.valorCancelado += novo.valorCancelado
 
-// 🔥 CORREÇÃO (NÃO SOBRESCREVER)
+// 🔥 NÃO SOBRESCREVER
 atual.almocoTotal += novo.almocoTotal
 atual.almocoVendas += novo.almocoVendas
 
+// 🔥 NÃO SOBRESCREVER FINAIS
 Object.entries(novo.finais).forEach(([key, val])=>{
   atual.finais[key] = (atual.finais[key] || 0) + val
 })
 
+}) // 🔥 FECHAMENTO CORRETO DO LOOP
+
+
+      
     // 🔥 render SEM recriar tudo
     render(window.dadosCache, window.dadosMesCache)
 
