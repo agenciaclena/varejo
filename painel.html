@@ -1459,8 +1459,6 @@ async function iniciarAutoImport(){
   executandoImport = false
 }
 
-// 🔥 RODA AO ABRIR
-iniciarAutoImport()
 
 // 🔁 LOOP 10 MINUTOS
 setInterval(() => {
@@ -1777,10 +1775,14 @@ atual.total += novo.total
 atual.vendas += novo.vendas
 atual.cancelados += novo.cancelados
 atual.valorCancelado += novo.valorCancelado
-      atual.almocoTotal = novo.almocoTotal
-      atual.almocoVendas = novo.almocoVendas
-      atual.finais = novo.finais
-    })
+
+// 🔥 CORREÇÃO (NÃO SOBRESCREVER)
+atual.almocoTotal += novo.almocoTotal
+atual.almocoVendas += novo.almocoVendas
+
+Object.entries(novo.finais).forEach(([key, val])=>{
+  atual.finais[key] = (atual.finais[key] || 0) + val
+})
 
     // 🔥 render SEM recriar tudo
     render(window.dadosCache, window.dadosMesCache)
