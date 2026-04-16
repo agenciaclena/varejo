@@ -5,173 +5,240 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 )
 
-// 🔐 LOGIN VAREJO FÁCIL
-async function getToken(){
-
-  const response = await fetch(
-    "https://financas.f360.com.br/PublicLoginAPI/DoLogin",
-    {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({
-        Token: process.env.F360_LOGIN_TOKEN
-      })
-    }
-  )
-
-  const json = await response.json()
-
-  if(!json?.Token){
-    throw new Error("Token não retornado")
-  }
-
-  return json.Token
+// 🔥 MAPA VAREJO FÁCIL
+const URLS = {
+  VAREJO_URL_MERCATTO: "https://mercatto.varejofacil.com/api/v1/venda/cupons-fiscais",
+  VAREJO_URL_VILLA: "https://deliciagourmet.varejofacil.com/api/v1/venda/cupons-fiscais",
+  VAREJO_URL_PADARIA: "https://mercattodelicia.varejofacil.com/api/v1/venda/cupons-fiscais",
+  VAREJO_URL_DELICIA: "https://villachopp.varejofacil.com/api/v1/venda/cupons-fiscais"
 }
 
-// 🔍 BUSCAR CUPONS
-async function buscarCupons(token, body){
-
-  const response = await fetch(
-    "https://financas.f360.com.br/FluxoCaixaAPI/GetFluxoCaixaDetalhado",
-    {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization": token
-      },
-      body: JSON.stringify({
-        DataInicio: body.dataInicio,
-        DataFim: body.dataFim,
-        Empresa: body.empresa
-      })
-    }
-  )
-
-  const json = await response.json()
-
-  if(!json?.Dados){
-    return []
-  }
-
-  // 🔥 NORMALIZAÇÃO (PADRÃO VAREJO FÁCIL)
-  const cupons = json.Dados.map(item => ({
-
-    id: String(item.NumeroCupom || item.Id),
-
-    valor: Number(item.ValorLiquido || item.Valor || 0),
-
-    data: item.Data?.split("T")[0],
-
-    hora: item.Data?.split("T")[1]?.slice(0,8) || "00:00:00",
-
-    empresa: body.empresa,
-
-    finalizadora: item.FormaPagamento || "OUTROS",
-
-    cancelado: item.Cancelado || false
-
-  }))
-
-  return cupons
-}
-
-// 💾 INSERIR CUPONS
-async function inserirCupons(cupons){
-
-  if(!cupons.length) return { inseridos:0 }
-
-  const ids = cupons.map(c => c.id)
-
-  // 🔥 EVITA DUPLICADOS
-  const { data: existentes } = await supabase
-    .from("resumo_vendas")
-    .select("unique_id")
-    .in("unique_id", ids)
-
-  const existentesSet = new Set(
-    existentes?.map(e => e.unique_id) || []
-  )
-
-  const novos = cupons.filter(c => !existentesSet.has(c.id))
-
-  if(!novos.length){
-    return { inseridos:0 }
-  }
-
-  // 🔥 INSERT EM LOTE
-  const payload = novos.map(c => ({
-    unique_id: c.id,
-    valor_liquido: c.valor,
-    data: c.data,
-    hora: c.hora,
-    empresa_id: c.empresa,
-    finalizadora: c.finalizadora,
-    cancelado: c.cancelado
-  }))
-
-  const { error } = await supabase
-    .from("resumo_vendas")
-    .insert(payload)
-
-  if(error){
-    throw new Error(error.message)
-  }
-
-  return { inseridos: payload.length }
-}
-
-// 🚀 HANDLER
 export default async function handler(req, res){
+
+  const body = req.body || {}
+
+  // 🔥 MODO PAINEL (JSON LIMPO)
+  if(body.modo === "BUSCAR"){
+    return buscarModoJSON(req, res)
+  }
+
+  if(body.modo === "INSERIR"){
+    return inserirModoJSON(req, res)
+  }
+
+  // 🔥 MODO STREAM (ZAFIA)
+  return modoStream(req, res)
+}
+
+//////////////////////////////////////////////////////
+// 🔍 MODO BUSCAR (PAINEL)
+//////////////////////////////////////////////////////
+async function buscarModoJSON(req, res){
 
   try{
 
-    if(req.method !== "POST"){
-      return res.status(405).json({ error:"Use POST" })
+    const { empresa, dataInicio, dataFim } = req.body
+
+    const loginResp = await fetch(`${req.headers.origin}/api/login`,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ empresa })
+    })
+
+    const loginData = await loginResp.json()
+    const token = loginData.accessToken || loginData.token
+
+    if(!token){
+      return res.status(400).json({ error:"Token inválido" })
     }
 
-    const body = req.body
-
-    if(!body.modo){
-      return res.status(400).json({ error:"Modo não informado" })
+    const baseURL = URLS[empresa]
+    if(!baseURL){
+      return res.status(400).json({ error:"Empresa inválida" })
     }
 
-    // 🔥 LOGIN
-    const token = await getToken()
+    let pagina = 1
+    let todos = []
+    let ids = new Set()
 
-    // =========================
-    // 🔍 BUSCAR
-    // =========================
-    if(body.modo === "BUSCAR"){
+    while(true){
 
-      const cupons = await buscarCupons(token, body)
+      const url = `${baseURL}?pagina=${pagina}&count=1000&q=data=ge=${dataInicio};data=le=${dataFim}`
 
-      return res.status(200).json({
-        total: cupons.length,
-        cupons
+      const response = await fetch(url,{
+        headers:{
+          Authorization: token,
+          Accept:"application/json"
+        }
       })
+
+      if(!response.ok){
+        break
+      }
+
+      const json = await response.json()
+      const items = json.items || []
+
+      if(items.length === 0){
+        break
+      }
+
+      for(const cupom of items){
+
+        const id = empresa + "_" + cupom.id
+
+        if(ids.has(id)) continue
+        ids.add(id)
+
+        todos.push({
+          id,
+          valor: Number(cupom.valor || 0),
+          data: cupom.data,
+          empresa,
+          raw: cupom
+        })
+      }
+
+      pagina++
+      if(pagina > 200) break
     }
 
-    // =========================
-    // 💾 INSERIR
-    // =========================
-    if(body.modo === "INSERIR"){
-
-      const resultado = await inserirCupons(body.cupons || [])
-
-      return res.status(200).json({
-        ok:true,
-        ...resultado
-      })
-    }
-
-    return res.status(400).json({ error:"Modo inválido" })
+    return res.json({
+      total: todos.length,
+      cupons: todos
+    })
 
   }catch(e){
+    return res.status(500).json({ error:e.message })
+  }
+}
 
-    console.error("❌ ERRO API:", e.message)
+//////////////////////////////////////////////////////
+// 💾 MODO INSERIR (LOTE)
+//////////////////////////////////////////////////////
+async function inserirModoJSON(req, res){
 
-    return res.status(500).json({
-      error:e.message
+  try{
+
+    const cupons = req.body.cupons || []
+
+    if(!cupons.length){
+      return res.json({ inseridos:0 })
+    }
+
+    const ids = cupons.map(c => c.id)
+
+    const { data: existentes } = await supabase
+      .from("cupons_importados")
+      .select("unique_id")
+      .in("unique_id", ids)
+
+    const set = new Set(existentes?.map(e => e.unique_id) || [])
+
+    const novos = cupons.filter(c => !set.has(c.id))
+
+    const payload = novos.map(c => ({
+      unique_id: c.id,
+      empresa: c.empresa,
+      empresa_id: c.empresa,
+      venda_id: c.raw?.id,
+      data: c.data,
+      cancelado: !!c.raw?.cancelada,
+      raw: c.raw
+    }))
+
+    if(payload.length > 0){
+
+      await supabase
+        .from("cupons_importados")
+        .upsert(payload, { onConflict:"unique_id" })
+    }
+
+    return res.json({
+      inseridos: payload.length,
+      ignorados: cupons.length - payload.length
     })
+
+  }catch(e){
+    return res.status(500).json({ error:e.message })
+  }
+}
+
+//////////////////////////////////////////////////////
+// 🚀 MODO STREAM (SEU ORIGINAL MELHORADO)
+//////////////////////////////////////////////////////
+async function modoStream(req, res){
+
+  res.writeHead(200,{
+    "Content-Type":"text/plain",
+    "Transfer-Encoding":"chunked"
+  })
+
+  function log(msg){
+    res.write(`[${new Date().toLocaleTimeString()}] ${msg}\n`)
+  }
+
+  try{
+
+    const { empresa, dataInicio, dataFim } = req.body
+
+    log("🚀 INICIANDO")
+
+    const loginResp = await fetch(`${req.headers.origin}/api/login`,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ empresa })
+    })
+
+    const loginData = await loginResp.json()
+    const token = loginData.accessToken || loginData.token
+
+    if(!token){
+      log("❌ Token inválido")
+      res.end()
+      return
+    }
+
+    const baseURL = URLS[empresa]
+
+    let pagina = 1
+    let total = 0
+
+    while(true){
+
+      const url = `${baseURL}?pagina=${pagina}&count=1000&q=data=ge=${dataInicio};data=le=${dataFim}`
+
+      const response = await fetch(url,{
+        headers:{ Authorization: token }
+      })
+
+      if(!response.ok){
+        log("❌ ERRO API")
+        break
+      }
+
+      const json = await response.json()
+      const items = json.items || []
+
+      if(items.length === 0){
+        log("🏁 FIM")
+        break
+      }
+
+      log(`📄 Página ${pagina} | ${items.length} cupons`)
+
+      total += items.length
+      pagina++
+
+      if(pagina > 200) break
+    }
+
+    log(`📊 TOTAL: ${total}`)
+
+    res.end()
+
+  }catch(e){
+    res.write("💥 " + e.message)
+    res.end()
   }
 }
