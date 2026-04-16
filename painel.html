@@ -1398,7 +1398,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // 🔥 CARREGA DADOS COMPLETOS
   await load(hoje)
-
+iniciarRealtime()
   // 🔥 ATUALIZAÇÃO LEVE
   setInterval(() => {
     atualizarLeve()
@@ -1824,7 +1824,65 @@ Object.entries(novo.finais).forEach(([key, val])=>{
   }
 }
 
+function iniciarRealtime(){
 
+  sb.channel('realtime-vendas')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'resumo_vendas'
+      },
+      payload => {
+
+        const v = payload.new
+
+        // 🔴 ignora cancelado
+        if(v.cancelado) return
+
+        // 🔥 processa só 1 item
+        const inicio = new Date()
+        inicio.setHours(0,0,0,0)
+
+        const fim = new Date()
+        fim.setHours(23,59,59,999)
+
+        const novo = process([v], inicio, fim)
+
+        // 🔥 aplica no cache atual
+        Object.keys(novo).forEach(emp => {
+
+          if(!window.dadosCache[emp]){
+            window.dadosCache[emp] = novo[emp]
+            return
+          }
+
+          const atual = window.dadosCache[emp]
+          const n = novo[emp]
+
+          atual.total += n.total
+          atual.vendas += n.vendas
+          atual.cancelados += n.cancelados
+          atual.valorCancelado += n.valorCancelado
+
+          atual.almocoTotal += n.almocoTotal
+          atual.almocoVendas += n.almocoVendas
+
+          Object.entries(n.finais).forEach(([k,v])=>{
+            atual.finais[k] = (atual.finais[k] || 0) + v
+          })
+        })
+
+        // 🔥 render instantâneo
+        render(window.dadosCache, window.dadosMesCache)
+
+        console.log("⚡ REALTIME UPDATE", v.id)
+      }
+    )
+    .subscribe()
+
+}
 
 
   
