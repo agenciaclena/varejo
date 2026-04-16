@@ -667,6 +667,18 @@ Object.keys(MAPA_ORIGINAL).forEach(emp=>{
 // ================= FORMAT =================
 const brl = v => Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
 
+const numero = v => Number(v).toLocaleString("pt-BR", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0
+})
+
+
+
+
+
+
+
+  
 // ================= TURNO =================
 function turno(){
 
