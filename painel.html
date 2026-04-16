@@ -1363,25 +1363,12 @@ if(inputData){
   console.log("📅 Data automática:", hoje)
 
   await iniciarAutoImport()
-  await load(hoje)
-
+setInterval(() => {
+  atualizarLeve()
+}, 30000)
 })
 
-// 🔁 AUTO UPDATE A CADA 30 SEGUNDOS (SEM RECARREGAR TELA)
-setInterval(async () => {
 
-  console.log("🔄 ATUALIZAÇÃO AUTOMÁTICA...")
-
-  const t = turno()
-  const hoje = formatDateOnly(t.inicio)
-
-  try{
-    await load(hoje) // 🔥 só atualiza dados
-  }catch(e){
-    console.error("❌ ERRO AUTO UPDATE:", e)
-  }
-
-}, 30000)
   
 let carregando = false
 
@@ -1733,7 +1720,64 @@ if(popupEl){
   })
 }
   
+async function atualizarLeve(){
 
+  try{
+
+    const t = turno()
+    const hoje = formatDateOnly(t.inicio)
+
+    // 🔥 busca só os registros mais recentes
+    const { data, error } = await sb
+      .from("resumo_vendas")
+      .select("*")
+      .gte("data", hoje)
+      .eq("cancelado", false)
+      .order("id", { ascending: false })
+      .limit(200) // 🔥 só últimos registros
+
+    if(error){
+      console.error("❌ ERRO LEVE:", error)
+      return
+    }
+
+    if(!data || data.length === 0) return
+
+    // 🔥 processa só o novo
+    const inicio = new Date(hoje + "T00:00:00")
+    const fim = new Date(hoje + "T23:59:59")
+
+    const novoProcessado = process(data, inicio, fim)
+
+    // 🔥 atualiza cache atual (sem zerar)
+    Object.keys(novoProcessado).forEach(emp => {
+
+      if(!window.dadosCache[emp]){
+        window.dadosCache[emp] = novoProcessado[emp]
+        return
+      }
+
+      const atual = window.dadosCache[emp]
+      const novo = novoProcessado[emp]
+
+      atual.total = novo.total
+      atual.vendas = novo.vendas
+      atual.cancelados = novo.cancelados
+      atual.valorCancelado = novo.valorCancelado
+      atual.almocoTotal = novo.almocoTotal
+      atual.almocoVendas = novo.almocoVendas
+      atual.finais = novo.finais
+    })
+
+    // 🔥 render SEM recriar tudo
+    render(window.dadosCache, window.dadosMesCache)
+
+    console.log("⚡ Atualização leve OK")
+
+  }catch(e){
+    console.error("❌ ERRO ATUALIZAÇÃO LEVE:", e)
+  }
+}
 
 
 
