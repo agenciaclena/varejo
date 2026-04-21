@@ -533,136 +533,8 @@ header div:first-child{
 
 <script>
 
-// ================= SUPABASE =================
-const sb = window.supabase.createClient(
-  "https://ehxrrpsiksceljmhsfxk.supabase.co",
-  "sb_publishable_Jm2ZQKzPS3gNPCKSjFAmYQ_WNMYwF1j"
-)
-let idsProcessadosMes = new Set()
-// 🔥 API BASE (COLE EXATAMENTE AQUI)
-const API_URL = window.location.origin.includes("localhost")
-  ? "http://localhost:3000"
-  : window.location.origin
-
-  
-const STORAGE_KEY = "painel_dv_cache"
-let carregandoMes = false
-// ================= MAPA ORIGINAL =================
-const MAPA_ORIGINAL = {
-  VAREJO_URL_DELICIA: [
-  { id: "1", descricao: "DINHEIRO" },
-  { id: "2", descricao: "CARTAO DE CREDITO" },
-  { id: "3", descricao: "CARTAO DE DEBITO" },
-  { id: "4", descricao: "CONSUMO FUNCIONARIOS" },
-  { id: "5", descricao: "CREDIARIO CLIENTES" },
-  { id: "7", descricao: "VOUCHER" },
-  { id: "8", descricao: "PAGAMENTOS ONLINE" },
-  { id: "10", descricao: "CONSUMO MUSICOS" },
-  { id: "11", descricao: "CREDITO POS" },
-  { id: "12", descricao: "DEBITO POS" },
-  { id: "13", descricao: "CLIENTES EM DEBITO" },
-  { id: "14", descricao: "BOLETO BANCARIO" },
-  { id: "15", descricao: "CHEQUE" },
-  { id: "16", descricao: "BONIFICACAO" },
-  { id: "21", descricao: "PIX QRCODE" },
-  { id: "22", descricao: "PIX CNPJ" },
-  { id: "23", descricao: "CREDITO DELIVERY" },
-  { id: "24", descricao: "DEBITO DELIVERY" },
-  { id: "27", descricao: "VOUCHER POS" },
-  { id: "28", descricao: "VOUCHER DELICIA" },
-  { id: "29", descricao: "CONSUMO SOCIO" }
-],
-  VAREJO_URL_VILLA: [
-  { id: "1", descricao: "DINHEIRO" },
-  { id: "2", descricao: "CARTAO DE DEBITO" },
-  { id: "3", descricao: "CARTAO DE CREDITO" },
-  { id: "4", descricao: "CREDIARIO CLIENTES" },
-  { id: "5", descricao: "CONSUMO FUNCIONARIOS" },
-  { id: "6", descricao: "VOUCHER" },
-  { id: "7", descricao: "CONSUMO MUSICOS" },
-  { id: "8", descricao: "ERROS LANCAMENTOS" },
-  { id: "9", descricao: "CLIENTES EM DEBITO" },
-  { id: "10", descricao: "PAGAMENTOS ONLINE" },
-  { id: "11", descricao: "TRANSFERENCIA BANCAR" },
-  { id: "12", descricao: "PIX" },
-  { id: "13", descricao: "CHEQUE" },
-  { id: "14", descricao: "BOLETO BANCARIO" },
-  { id: "15", descricao: "CREDITO ANTECIPADO" },
-  { id: "16", descricao: "PAGAMENTO ANTECIPADO" },
-  { id: "17", descricao: "CATALOGO DELIVERY" },
-  { id: "18", descricao: "CART CREDITO POS" },
-  { id: "19", descricao: "CART DEBITO POS" },
-  { id: "20", descricao: "PIX ITAU" },
-  { id: "22", descricao: "PIX POS" },
-  { id: "23", descricao: "VOUCHER POS" },
-  { id: "24", descricao: "BONIFICACAO" },
-  { id: "25", descricao: "CONSUMO SOCIO" },
-  { id: "26", descricao: "ERROS GARCONS" },
-  { id: "27", descricao: "BONIFICACAO GERENCIA" },
-  { id: "28", descricao: "CARTAO DEBITO VCH" },
-  { id: "29", descricao: "CARTAO CREDITO VCH" },
-  { id: "30", descricao: "PIX ITAU VCH" }
-],
-  VAREJO_URL_PADARIA: [
-  { id: "1", descricao: "DINHEIRO" },
-  { id: "2", descricao: "CARTAO DE CREDITO" },
-  { id: "3", descricao: "CARTAO DE DEBITO" },
-  { id: "4", descricao: "PIX" },
-  { id: "5", descricao: "BOLETO" },
-  { id: "6", descricao: "CONSUMO FUNCIONARIOS" },
-  { id: "8", descricao: "CARTAO VOUCHER" },
-  { id: "10", descricao: "CREDITO DELIVERY" },
-  { id: "11", descricao: "DEBITO DELIVERY" },
-  { id: "12", descricao: "PIX OFFLINE" },
-  { id: "13", descricao: "PAGAMENTO ONLINE" },
-  { id: "14", descricao: "CONSUMO SOCIO" },
-  { id: "15", descricao: "VOUCHER POS" },
-  { id: "", descricao: "SEM FATURAMENTO" }
-],
-  VAREJO_URL_MERCATTO: [
-  { "id": "1", "descricao": "DINHEIRO" },
-  { "id": "2", "descricao": "CARTAO CREDITO TEF" },
-  { "id": "3", "descricao": "CARTAO DEBITO TEF" },
-  { "id": "4", "descricao": "PIX CNPJ" },
-  { "id": "5", "descricao": "CONSUMO FUNCIONARIOS" },
-  { "id": "6", "descricao": "REFEICAO ALIME. TEF" },
-  { "id": "7", "descricao": "TOTEM CREDITO" },
-  { "id": "8", "descricao": "TOTEM DEBITO" },
-  { "id": "9", "descricao": "BONIFICACAO" },
-  { "id": "10", "descricao": "BOLETO" },
-  { "id": "11", "descricao": "PGTO ONLINE CREDITO" },
-  { "id": "15", "descricao": "PIX QRCODE POS" },
-  { "id": "16", "descricao": "PIX TEF" },
-  { "id": "17", "descricao": "CREDITO POS" },
-  { "id": "18", "descricao": "DEBITO POS" },
-  { "id": "19", "descricao": "CART ALIMENTACAO POS" },
-  { "id": "20", "descricao": "BOLETO FAMILY PRODUT" },
-  { "id": "21", "descricao": "BOLETO FOODS TIME" },
-  { "id": "22", "descricao": "BOLETO DELICIA PRODU" },
-  { "id": "23", "descricao": "BOLETO MEOS GOURMET" },
-  { "id": "24", "descricao": "BOLETO ALL TIME CHOP" },
-  { "id": "25", "descricao": "BOLETO MERCATTO KIDS" },
-  { "id": "26", "descricao": "CREDIARIO CLIENTES" },
-  { "id": "27", "descricao": "CONSUMO SOCIO" },
-  { "id": "28", "descricao": "BOLETO DELICIA INDUS" },
-  { "id": "29", "descricao": "VOUCHER" },
-  { "id": "32", "descricao": "PAGAMENTO ONLINE" },
-  { "id": "33", "descricao": "VOUCHER POS" },
-  { "id": "34", "descricao": "MARKETING" },
-  { "id": "35", "descricao": "VALE MERCATTO" },
-  { "id": "36", "descricao": "PREJUIZO" }
-]
-}
-
-// ================= TRANSFORMA MAPA =================
-const MAPA = {}
-
-Object.keys(MAPA_ORIGINAL).forEach(emp=>{
-  MAPA[emp] = {}
-  MAPA_ORIGINAL[emp].forEach(f=>{
-    MAPA[emp][Number(f.id)] = f.descricao
-  })
-})
+// ================= CONFIG =================
+const API_URL = "https://hop-liability-ping-thousand.trycloudflare.com/cupons"
 
 // ================= FORMAT =================
 const brl = v => Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
@@ -672,108 +544,10 @@ const numero = v => Number(v).toLocaleString("pt-BR", {
   maximumFractionDigits: 0
 })
 
-
-
-
-
-
-
-  
-// ================= TURNO =================
-function turno(){
-
-  const agora = new Date()
-
-  const inicio = new Date(agora)
-  inicio.setHours(5,0,0,0)
-
-  // se ainda não chegou 05:00 → volta 1 dia
-  if(agora.getHours() < 5){
-    inicio.setDate(inicio.getDate() - 1)
-  }
-
-  const fim = new Date(inicio)
-  fim.setDate(fim.getDate() + 1)
-  fim.setHours(4,59,59,999)
-
-  return { inicio, fim }
-}
-
-// ================= PARSE =================
-function parse(v){
-  return {
-    data: new Date(`${v.data}T${v.hora || "00:00:00"}`),
-    valor: Number(v.valor_liquido ?? 0),
-    finalizadora: v.finalizadora || "OUTROS",
-    cancelado: v.cancelado,
-    caixa: Number(v.caixa || 0),
-    id: v.unique_id
-  }
-}
-
-// ================= PROCESS =================
-function process(data, inicio, fim){
-
-  const result = {}
-
-data.forEach(v=>{
-
-const dataVenda = new Date(
-  new Date(`${v.data}T${v.hora || "00:00:00"}`)
-    .toLocaleString("en-US", { timeZone: "America/Bahia" })
-)
-
-const inicioBahia = new Date(
-  inicio.toLocaleString("en-US", { timeZone: "America/Bahia" })
-)
-
-const fimBahia = new Date(
-  fim.toLocaleString("en-US", { timeZone: "America/Bahia" })
-)
-
-if(dataVenda < inicioBahia || dataVenda > fimBahia) return
-
-  
-  
-const p = parse(v)
-if(!p) return
-
-
-const id = v.unique_id
-  if(!id) return
-
-
-const d = new Date(p.data)
-
-const dLocal = new Date(
-  d.toLocaleString("en-US", { timeZone: "America/Bahia" })
-)
-const hora = dLocal.getHours()
-const isAlmoco = hora >= 10 && hora < 15
-
-
-
-const dataHora = new Date(
-  new Date(`${v.data}T${v.hora || "00:00:00"}`)
-    .toLocaleString("en-US", { timeZone: "America/Bahia" })
-)
-
-
-
-// 🔥 DATA PURA (IGUAL SQL)
-const dataRegistro = v.data
-
-const dataInicio = inicio.toISOString().split("T")[0]
-const dataFim = fim.toISOString().split("T")[0]
-
-
-    
-   const empBase = v.empresa_id
-const caixa = p.caixa
-
+// ================= NORMALIZA EMPRESA =================
 function normalizarEmpresa(empBase, caixa){
 
-  const nome = (empBase || "").trim().toUpperCase()
+  const nome = (empBase || "").toUpperCase()
 
   if(nome.includes("DELICIA")) return "DELICIA"
   if(nome.includes("VILLA")) return "VILLA"
@@ -787,50 +561,42 @@ function normalizarEmpresa(empBase, caixa){
   return nome
 }
 
-const emp = normalizarEmpresa(empBase, caixa)
-  
-    if(!result[emp]){
-      result[emp]={
-total:0,
-vendas:0,
-cancelados:0,
-valorCancelado:0,
-finais:{},
+// ================= PROCESS =================
+function process(data){
 
-// 🔥 NOVO
-almocoTotal:0,
-almocoVendas:0
+  const result = {}
+
+  data.forEach(v=>{
+
+    if(v.cancelado) return
+
+    const emp = normalizarEmpresa(v.empresa, Number(v.numero_caixa || 0))
+
+    if(!result[emp]){
+      result[emp] = {
+        total:0,
+        vendas:0,
+        almocoTotal:0,
+        almocoVendas:0
       }
     }
 
-    // 🔴 CANCELADOS
-    if(p.cancelado){
-      result[emp].cancelados++
-      result[emp].valorCancelado += p.valor
-      return
+    const valor = Number(v.valor)
+
+    result[emp].total += valor
+    result[emp].vendas++
+
+    // almoço
+    const hora = Number(v.hora?.substring(0,2) || 0)
+    if(hora >= 10 && hora < 15){
+      result[emp].almocoTotal += valor
+      result[emp].almocoVendas++
     }
 
-    // ✅ VÁLIDOS
-const totalCupom = p.valor
-
-const nome = p.finalizadora || "OUTROS"
-
-result[emp].finais[nome] =
-  (result[emp].finais[nome] || 0) + p.valor
-
-    
-    result[emp].total += totalCupom
-    result[emp].vendas++
-if(isAlmoco){
-  result[emp].almocoTotal += totalCupom
-  result[emp].almocoVendas++
-}
   })
 
   return result
 }
-
-
 
 // ================= METAS =================
 const METAS = {
@@ -840,7 +606,6 @@ const METAS = {
   "MERCATTO RESTAURANTE": { prata: 850000, ouro: 900000 },
   "MERCATTO EMPÓRIO": { prata: 650000, ouro: 690000 }
 }
-
 
 function getMetaEmpresa(nome){
 
@@ -852,1040 +617,109 @@ function getMetaEmpresa(nome){
 
   return null
 }
-  
 
+// ================= LOGO =================
+function getLogo(emp){
+  if(emp.includes("VILLA")) return "logo/villa.png"
+  if(emp.includes("DELICIA")) return "logo/delicia.png"
+  if(emp.includes("PADARIA")) return "logo/padaria.png"
+  if(emp.includes("RESTAURANTE")) return "logo/mercatto.png"
+  if(emp.includes("EMPÓRIO")) return "logo/emporio.png"
+  return ""
+}
 
-
-
-
-  
 // ================= RENDER =================
-
-function render(dados, dadosMes){
-
-  window.dadosCache = dados
+function render(dados){
 
   function montarCard(emp){
 
     const d = dados[emp] || {
       total:0,
       vendas:0,
-      cancelados:0,
-      valorCancelado:0,
       almocoTotal:0,
       almocoVendas:0
     }
 
-    const dMes = dadosMes[emp] || { total:0 }
-
-    // ✅ CALCULA FORA DO HTML
-    const ticketMedio = d.vendas > 0 ? d.total / d.vendas : 0
-    const ticketAlmoco = d.almocoVendas > 0 ? d.almocoTotal / d.almocoVendas : 0
-
-return `
-  <div class="card-top">
-
-
-<div style="display:flex;align-items:center;gap:8px">
-
-  <img src="${getLogo(emp)}" class="logo">
-
- <div style="display:flex;flex-direction:column;gap:2px">
-
-  <!-- MÊS (maior) -->
-  <div class="valor-mes">
-    ${brl(dMes.total)}
-  </div>
-
-  <!-- DIA -->
-  <div class="valor">
-    ${brl(d.total)}
-  </div>
-
-<div class="info-box">
-
-  <div class="vendas-linha">
-    ${d.vendas} vendas 
-    <span class="cancel-inline">
-    </span>
-  </div>
-
-  <div class="ticket-linha">
-    Ticket: ${brl(ticketMedio)}
-  </div>
-
-</div>
-
-
-
-</div>
-
-</div>
-
-   <div class="metas">
-  ${(() => {
+    const ticket = d.vendas ? d.total / d.vendas : 0
 
     const meta = getMetaEmpresa(emp)
-    if(!meta) return ""
 
-    const pct1 = Math.min((dMes.total/meta.prata)*100,100)
-    const pct2 = Math.min((dMes.total/meta.ouro)*100,100)
+    let metasHTML = ""
 
-   return `
-  <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-    
-    <div class="bola prata" style="--p:${pct1}%">
-      <span>${pct1.toFixed(0)}%</span>
-    </div>
+    if(meta){
+      const pct1 = Math.min((d.total/meta.prata)*100,100)
+      const pct2 = Math.min((d.total/meta.ouro)*100,100)
 
-    <div style="font-size:10px;color:#94a3b8;font-weight:700">
-     ${numero(meta.prata)}
-    </div>
+      metasHTML = `
+        <div class="metas">
+          <div class="bola prata" style="--p:${pct1}%"><span>${pct1.toFixed(0)}%</span></div>
+          <div class="bola ouro" style="--p:${pct2}%"><span>${pct2.toFixed(0)}%</span></div>
+        </div>
+      `
+    }
 
-  </div>
-
-  <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-
-    <div class="bola ouro" style="--p:${pct2}%">
-      <span>${pct2.toFixed(0)}%</span>
-    </div>
-
-    <div style="font-size:10px;color:#94a3b8;font-weight:700">
-      ${numero(meta.ouro)}
-    </div>
-
-  </div>
-
-  <!-- 🔥 mantém o ticket -->
-  <div class="mini-ticket">
-    <div class="mini-label">Ticket Médio</div>
-
-    <div class="mini-valores">
-      <span class="mini-vendas">${d.vendas}</span>
-      <span class="mini-ticket-text">${brl(ticketMedio)}</span>
-    </div>
-  </div>
-`
-  })()}
-</div>
-
-  </div>
-
-`
+    return `
+      <div class="card-top">
+        <div style="display:flex;gap:10px">
+          <img src="${getLogo(emp)}" class="logo">
+          <div>
+            <div class="valor">${brl(d.total)}</div>
+            <div class="vendas">${d.vendas} vendas</div>
+            <div class="ticket-linha">Ticket: ${brl(ticket)}</div>
+          </div>
+        </div>
+        ${metasHTML}
+      </div>
+    `
   }
 
-  // 🔥 FIXO NOS CARDS
   document.getElementById("villa").innerHTML = montarCard("VILLA")
   document.getElementById("delicia").innerHTML = montarCard("DELICIA")
   document.getElementById("padaria").innerHTML = montarCard("PADARIA")
   document.getElementById("restaurante").innerHTML = montarCard("MERCATTO RESTAURANTE")
   document.getElementById("emporio").innerHTML = montarCard("MERCATTO EMPÓRIO")
 
-  // 🔥 TOTAL MERCATTO
-  const totalMercatto =
-    (dadosMes["MERCATTO EMPÓRIO"]?.total || 0) +
-    (dadosMes["MERCATTO RESTAURANTE"]?.total || 0) +
-    (dadosMes["MKIDS"]?.total || 0)
-
-document.getElementById("totalMercatto").innerHTML = `
-  <div class="titulo">TOTAL MERCATTO</div>
-  <div class="valor">${brl(totalMercatto)}</div>
-`
-
-// 🔥 TOTAL GERAL DO DIA
-let totalDia = 0
-let totalVendas = 0
-
-Object.values(dados).forEach(d=>{
-  totalDia += d.total
-  totalVendas += d.vendas
-})
-
-// 🔥 ATUALIZA BARRA
-const barra = document.getElementById("barraResumo")
-if(barra){
-  barra.innerHTML = `
-    Hoje: <b>${brl(totalDia)}</b> • ${totalVendas} vendas
-  `
-}
-}
-
-
-function mesOperacional(){
-
-  const now = new Date()
-
-  const inicio = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    1,
-    4,0,0,0
-  )
-
-  const fim = new Date()
-
-  return { inicio, fim }
-}
-
-
-
-function salvarCache(dados, dadosMes){
-
-  const payload = {
-    dados,
-    dadosMes,
-    atualizadoEm: new Date().toISOString()
-  }
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
-
-}
-
-
-
-  function carregarCache(){
-
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if(!raw) return null
-
-    return JSON.parse(raw)
-
-  }catch(e){
-    return null
-  }
-
-}
-// ================= LOAD =================
-let carregandoAgora = false
-
-async function load(dataSelecionada){
-
-  if(carregandoAgora){
-    console.log("⏳ Já carregando, ignorado...")
-    return
-  }
-
-  carregandoAgora = true
-
-  
-console.log("🚀 INICIANDO LOAD")
-
-const dot = document.getElementById("statusDot")
-
-dot.classList.add("loading")
-dot.style.background = "#f59e0b"
-dot.style.boxShadow = "0 0 10px #f59e0b"
-
-
-let dadosParciais = []
-
-let from = 0
-const step = 1000
-
-// 🔥 CACHE DO MÊS
-window.dadosMesCache = {}
-
-let lastDate = null
-let lastId = null
-while(true){
-
-  await new Promise(r => requestAnimationFrame(r))
-
-
-let query = sb
-  .from("resumo_vendas")
-  .select("*")
-  .gte("data", dataSelecionada)
-  .lte("data", dataSelecionada)
-  .eq("cancelado", false)
-  .order("data", { ascending: true })
-  .order("id", { ascending: true })
-  .limit(step)
-
-  // 🔥 CURSOR REAL
-if(lastDate){
-  query = query.or(
-    `data.gt.${lastDate},and(data.eq.${lastDate},id.gt.${lastId})`
-  )
-}
-
-  const { data, error } = await query
-if(error){
-  console.error("❌ ERRO PAGINA:", error)
-
-  const cache = carregarCache()
-
-  // 🔥 sempre renderiza o que tiver
-  render(cache?.dados || {}, cache?.dadosMes || {})
-
-  carregandoAgora = false // 🔥 ESSENCIAL (sem isso trava tudo)
-
-  return
-}
-
-  if(!data || data.length === 0){
-    console.log("⛔ FIM PAGINAÇÃO")
-    break
-  }
-lastDate = data[data.length - 1].data
-lastId = data[data.length - 1].id
-  console.log(`📄 PAGINA ${from} → ${from + step} | ITENS: ${data.length}`)
-
-dadosParciais = dadosParciais.concat(data)
-const inicio = new Date(dataSelecionada + "T00:00:00")
-const fim = new Date(dataSelecionada + "T23:59:59")
-
-const parcial = process(dadosParciais, inicio, fim)
-salvarCache(parcial, window.dadosMesCache || {})
-
-// 🔥 RENDER PROGRESSIVO
-render(parcial, window.dadosMesCache || {})
-
-  
-  if(data.length < step){
-    console.log("🏁 ÚLTIMA PÁGINA")
-    break
-  }
-
-  from += step
-}
-// 🔥 FINAL
-console.log("📊 TOTAL CARREGADO:", dadosParciais.length)
-
-// ✅ DEFINE BASE PARA ATUALIZAÇÃO LEVE
-if(dadosParciais.length > 0){
-  window.ultimoId = dadosParciais[dadosParciais.length - 1].id
-}
-
-  
-// 🔥 MÊS (usa os mesmos dados já carregados)
-const cache = carregarCache()
-
-let usarCacheMes = false
-
-if(cache?.dadosMes && cache?.atualizadoEm){
-  const diff = Date.now() - new Date(cache.atualizadoEm).getTime()
-
-  if(diff < 1000 * 60 * 30){ // 🔥 30 MIN
-    usarCacheMes = true
-    console.log("⚡ USANDO CACHE DO MÊS")
-    window.dadosMesCache = cache.dadosMes
-  }
-}
-
-
-  
-let dadosMesBruto = cache?.dadosMesBruto || []
-  let fromMes = 0
-const stepMes = 300
-
-// 🔥 VERIFICA CACHE (30 MIN)
-if(cache?.dadosMes && cache?.atualizadoEm){
-  const diff = Date.now() - new Date(cache.atualizadoEm).getTime()
-
-  if(diff < 1000 * 60 * 30){
-    usarCacheMes = true
-    console.log("⚡ USANDO CACHE DO MÊS")
-    window.dadosMesCache = cache.dadosMes
-  }
-}
-
-const mes = mesOperacional()
-
-// 🔥 SÓ BUSCA SE NÃO TEM CACHE
-if(!usarCacheMes){
-
-  while(true){
-
-const inputData = document.getElementById("data")
-
-const dataSelecionada = inputData
-  ? inputData.value
-  : new Date().toISOString().slice(0,10)
-const ano = dataSelecionada.split("-")[0]
-const mesNumero = dataSelecionada.split("-")[1]
-
-// 🔥 INICIO DO MÊS
-const inicioMes = `${ano}-${mesNumero}-01`
-// 🔥 FIM DO MÊS (dinâmico)
-const fimMes = new Date(ano, Number(mesNumero), 0)
-  .toISOString()
-  .split("T")[0]
-
-const { data, error } = await sb
-  .from("resumo_vendas")
-  .select("*")
-  .gte("data", inicioMes)
-  .lte("data", fimMes)
-  .eq("cancelado", false)
-  .order("data", { ascending: true })
-  .range(fromMes, fromMes + stepMes - 1)
-
-    
-
-    // 🔴 ERRO → USA CACHE E NÃO QUEBRA
-    if(error){
-      console.error("❌ ERRO MES:", error)
-
-      if(cache?.dadosMes){
-        console.log("⚡ FALLBACK CACHE")
-        window.dadosMesCache = cache.dadosMes
-      }
-
-      break
-    }
-
-    if(!data || data.length === 0){
-      console.log("⛔ FIM PAGINAÇÃO MÊS")
-      break
-    }
-
-    console.log(`📊 MÊS PAGINA ${fromMes} → ${fromMes + stepMes} | ${data.length}`)
-
-    dadosMesBruto = dadosMesBruto.concat(data)
-
-    // 🔥 PROCESSA PARCIAL
-    const parcialMes = process(
-      dadosMesBruto.map(v => ({
-        ...v,
-        raw: lerJSONSeguro(v.raw)
-      })),
-      mes.inicio,
-      mes.fim
-    )
-
-    // 🔥 ATUALIZA EM TEMPO REAL
-    window.dadosMesCache = parcialMes
-
-    // 🔥 SALVA PROGRESSIVO
-    salvarCache(
-      window.dadosCache || {},
-      parcialMes
-    )
-
-    if(data.length < stepMes){
-      console.log("🏁 ÚLTIMA PÁGINA MÊS")
-      break
-    }
-
-    fromMes += stepMes
-  }
-
-  // 🔥 FINALIZA (SÓ SE TEM DADOS)
-  if(dadosMesBruto.length > 0){
-
-    const dadosMesTratado = dadosMesBruto.map(v => ({
-      ...v,
-      raw: lerJSONSeguro(v.raw)
-    }))
-
-    const dadosMes = process(dadosMesTratado, mes.inicio, mes.fim)
-
-    window.dadosMesCache = dadosMes
-
-    const cacheAtual = carregarCache()
-
-    salvarCache(
-      cacheAtual?.dados || {},
-      dadosMes
-    )
-  }
-}
-
-const dadosMesTratado = (dadosMesBruto || [])
-let dadosMes = window.dadosMesCache || {}
-
-if(Object.keys(dadosMes).length === 0){
-  dadosMes = cache?.dadosMes || {}
-}
-
-// 🔥 SALVA CACHE
-window.dadosMesCache = dadosMes
-
-const cacheAtual = carregarCache()
-
-salvarCache(
-  cacheAtual?.dados || {},
-  dadosMes
-)
-// 🔥 RENDER FINAL COMPLETO
-const inicio = new Date(dataSelecionada + "T00:00:00")
-const fim = new Date(dataSelecionada + "T23:59:59")
-
-const finalDados = process(dadosParciais, inicio, fim)
-console.log("📊 FINAL FILTRADO:", finalDados)
-
-// ✅ AQUI (EXATO)
-render(finalDados, dadosMes)
-if(!carregandoMes){
-  carregandoMes = true
-  carregarMesBackground(dataSelecionada)
-}  
-// 🔥 FINALIZA LOADING
-dot.classList.remove("loading")
-dot.style.background = "#22c55e"
-dot.style.boxShadow = "0 0 10px #22c55e"
-
-console.log("✅ FINALIZADO LOAD")
-
-carregandoAgora = false
-}
-// ================= RELOAD =================
-async function reload(){
-
-  const btn = document.getElementById("btnAplicar")
-  const data = document.getElementById("data").value
-
-  btn.classList.add("loading")
-
-  await new Promise(r => setTimeout(r, 150)) // 🔥 suaviza UX
-
-  try{
-    await load(data)
-  }catch(e){
-    console.error(e)
-  }
-
-  btn.classList.remove("loading")
-}
-
-// ================= START =================
-const t = turno()
-
-function formatLocal(date){
-  const pad = n => String(n).padStart(2,"0")
-
-  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-function formatDateOnly(date){
-  const pad = n => String(n).padStart(2,"0")
-  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`
-}
-
-
-// 🔥 AQUI ENTRA O CACHE
-const cache = carregarCache()
-
-window.renderInicializado = false
-
-if(cache){
-
-  const diff = Date.now() - new Date(cache.atualizadoEm).getTime()
-
-  if(diff < 1000 * 60 * 10 && !window.renderInicializado){
-    console.log("⚡ CACHE RECENTE CARREGADO")
-    render(cache.dados || {}, cache.dadosMes || {})
-    window.renderInicializado = true
-  }
-}
-
-// 🔄 SEMPRE CARREGA DO BANCO DEPOIS
-window.addEventListener("DOMContentLoaded", async () => {
-
-  const t = turno()
-  const hoje = formatDateOnly(t.inicio)
-
-  const inputData = document.getElementById("data")
-
-  if(inputData){
-    inputData.value = hoje
-  }
-
-  console.log("📅 Data automática:", hoje)
-
-  await iniciarAutoImport()
-
-  // 🔥 CARREGA DADOS COMPLETOS
-  await load(hoje)
-iniciarRealtime()
-  // 🔥 ATUALIZAÇÃO LEVE
-  setInterval(() => {
-    atualizarLeve()
-  }, 30000)
-
-})
-  
-let carregando = false
-
-// ================= AUTO IMPORTAÇÃO =================
-
-// 🔥 LISTA DE EMPRESAS
-const EMPRESAS = [
-  "VAREJO_URL_MERCATTO",
-  "VAREJO_URL_VILLA",
-  "VAREJO_URL_PADARIA",
-  "VAREJO_URL_DELICIA"
-]
-
-// 🔥 CONTROLE
-let executandoImport = false
-
-// 🔥 FUNÇÃO PRINCIPAL
-async function rodarImportacaoAutomatica(){
-
-  const hoje = new Date().toISOString().slice(0,10)
-
-  console.log("🚀 AUTO IMPORTAÇÃO:", hoje)
-
-  const dot = document.getElementById("statusDot")
-  dot.classList.add("loading")
-
-  for(const empresa of EMPRESAS){
-
-    try{
-
-      document.getElementById("status").innerText =
-        "Importando: " + empresa
-
-      await fetch(API_URL + "/api/importar-cupons",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body: JSON.stringify({
-          empresa,
-          dataInicio: hoje,
-          dataFim: hoje
-        })
-      })
-
-    }catch(e){
-      console.error("❌ ERRO:", empresa, e.message)
-    }
-
-    await new Promise(r => setTimeout(r, 1500))
-  }
-
-  document.getElementById("status").innerText =
-    "Atualizado: " + new Date().toLocaleTimeString()
-
-  dot.classList.remove("loading")
-
-  console.log("✅ CICLO FINALIZADO")
-}
-
-// 🔥 EXECUÇÃO SEGURA
-async function iniciarAutoImport(){
-
-  if(executandoImport){
-    console.log("⏳ Já rodando...")
-    return
-  }
-
-  executandoImport = true
-
-  try{
-    await rodarImportacaoAutomatica()
-  }catch(e){
-    console.error("💥 ERRO:", e.message)
-  }
-
-  executandoImport = false
-}
-
-
-// 🔁 LOOP 10 MINUTOS
-setInterval(() => {
-  iniciarAutoImport()
-}, 5 * 60 * 1000) // a cada 5 min
-
-  
-function lerJSONSeguro(raw){
-
-  try{
-
-    // já é objeto → retorna direto
-    if(typeof raw === "object"){
-      return raw
-    }
-
-    // não é string → inválido
-    if(typeof raw !== "string"){
-      return null
-    }
-
-    // 1º parse
-    let parsed = JSON.parse(raw)
-
-    // se ainda for string → parse de novo
-    if(typeof parsed === "string"){
-      parsed = JSON.parse(parsed)
-    }
-
-    return parsed
-
-  }catch(e){
-    console.log("❌ ERRO AO LER JSON:", e.message)
-    console.log("📦 RAW PROBLEMÁTICO:", raw)
-    return null
-  }
-}
-
-
-
-function normalizarEmpresa(empBase, caixa){
-
-  const nome = (empBase || "").trim().toUpperCase()
-
-  if(nome.includes("DELICIA")) return "DELICIA"
-  if(nome.includes("VILLA")) return "VILLA"
-  if(nome.includes("PADARIA")) return "PADARIA"
-
-  if(nome.includes("MERCATTO")){
-    if(caixa >= 1 && caixa <= 5) return "MERCATTO EMPÓRIO"
-    if(caixa >= 6) return "MERCATTO RESTAURANTE"
-  }
-
-  return nome
-}
-
-  
-
-async function carregarMesBackground(dataSelecionada){
-
-  console.log("🚀 INICIANDO BACKGROUND MÊS")
-
-  const cache = carregarCache() || {}
-
-  let dadosMesCache = cache.dadosMes || {}
-  let ultimaPagina = cache.ultimaPaginaMes || 0
-
-  const step = 300
-  let from = ultimaPagina
-
-  const ano = dataSelecionada.split("-")[0]
-  const mesNumero = dataSelecionada.split("-")[1]
-
-  const inicioMes = `${ano}-${mesNumero}-01`
-  const fimMes = new Date(ano, Number(mesNumero), 0)
-    .toISOString()
-    .split("T")[0]
-
-let dadosMesBruto = cache?.dadosMesBruto || []
-if(cache.dadosMes){
-  console.log("⚡ CONTINUANDO DO CACHE")
-}
-  
-  while(true){
-
-    const { data, error } = await sb
-      .from("resumo_vendas")
-      .select("*")
-      .gte("data", inicioMes)
-      .lte("data", fimMes)
-      .eq("cancelado", false)
-      .order("data", { ascending: true })
-      .range(from, from + step - 1)
-
-    if(error){
-      console.log("❌ ERRO BACKGROUND:", error)
-      break
-    }
-
-    if(!data || data.length === 0){
-      console.log("🏁 FIM BACKGROUND")
-      break
-    }
-
-    dadosMesBruto = dadosMesBruto.concat(data)
-
-if(!window.dadosMesCache){
-  window.dadosMesCache = {}
-}
-
-data.forEach(v => {
-
-  const id = v.unique_id
-  if(!id || idsProcessadosMes.has(id)) return
-
-  idsProcessadosMes.add(id)
-
-  const p = parse(v)
-  if(!p || p.cancelado) return
-
-const emp = normalizarEmpresa(v.empresa_id, Number(v.caixa || 0))
-  if(!window.dadosMesCache[emp]){
-    window.dadosMesCache[emp] = {
-      total:0,
-      vendas:0,
-      cancelados:0,
-      valorCancelado:0,
-      finais:{},
-      almocoTotal:0,
-      almocoVendas:0
-    }
-  }
-
-  const d = window.dadosMesCache[emp]
-
-  d.total += p.valor
-  d.vendas++
-
-  const nome = p.finalizadora || "OUTROS"
-  d.finais[nome] = (d.finais[nome] || 0) + p.valor
-
-  // almoço
-  const hora = new Date(p.data).getHours()
-  if(hora >= 10 && hora < 15){
-    d.almocoTotal += p.valor
-    d.almocoVendas++
-  }
-
-})
-
-// 🔥 ATUALIZA TELA EM TEMPO REAL
-if(window.dadosCache){
-  render(window.dadosCache, window.dadosMesCache)
-}
-
-// 🔥 SUAVIZA LOOP
-await new Promise(r => setTimeout(r, 30))
-
-// 🔥 SALVA CACHE CORRETO
-localStorage.setItem(STORAGE_KEY, JSON.stringify({
-  dados: cache.dados || {},
-  dadosMes: window.dadosMesCache,
-  ultimaPaginaMes: from + step,
-  atualizadoEm: new Date().toISOString()
-}))
-
-    console.log("💾 SALVANDO MÊS:", from)
-
-    from += step
-
-    // 🔥 não travar UI
-    await new Promise(r => setTimeout(r, 50))
-  }
-
-  console.log("✅ BACKGROUND FINALIZADO")
-}
-
-
-
-
-
- function renderKPIs(dados){
-
-  const el = document.getElementById("kpis")
-
-  if(!el) return // 🔥 EVITA ERRO
-
+  // TOTAL GERAL
   let total = 0
   let vendas = 0
-  let cancelados = 0
 
   Object.values(dados).forEach(d=>{
     total += d.total
     vendas += d.vendas
-    cancelados += d.cancelados
   })
 
-  el.innerHTML = `
-    <div class="kpi">
-      <div class="label">Faturamento</div>
-      <div class="value">${brl(total)}</div>
-    </div>
-
-    <div class="kpi">
-      <div class="label">Vendas</div>
-      <div class="value">${vendas}</div>
-    </div>
-
-    <div class="kpi">
-      <div class="label">Cancelamentos</div>
-      <div class="value">${cancelados}</div>
-    </div>
-  `
+  document.getElementById("barraResumo").innerHTML =
+    `Hoje: <b>${brl(total)}</b> • ${vendas} vendas`
 }
 
-function getLogo(emp){
-
-  if(emp.includes("VILLA")) return "logo/villa.png"
-  if(emp.includes("DELICIA")) return "logo/delicia.png"
-  if(emp.includes("PADARIA")) return "logo/padaria.png"
-  if(emp.includes("RESTAURANTE")) return "logo/mercatto.png"
-  if(emp.includes("EMPÓRIO")) return "logo/emporio.png"
-  if(emp.includes("MKIDS")) return "logo/mercatto.png"
-
-  return ""
-}
-let popupAtual = null
-
-function abrirPopup(emp){
-
-  popupAtual = emp
-
-  const overlay = document.getElementById("popupOverlay")
-  const content = document.getElementById("popupContent")
-
-  const dados = window.dadosCache?.[emp]
-  if(!dados) return
-
-  content.innerHTML = Object.entries(dados.finais)
-    .sort((a,b)=>b[1]-a[1])
-    .map(f=>`
-      <div style="
-        display:flex;
-        justify-content:space-between;
-        padding:6px 0;
-        border-bottom:1px solid #eee;
-        font-size:13px;
-      ">
-        <span>${f[0]}</span>
-        <b>${brl(f[1])}</b>
-      </div>
-    `).join("")
-
-  overlay.style.display = "flex"
-  overlay.classList.add("active")
-}
-
-
-
-const popupEl = document.getElementById("popupOverlay")
-
-if(popupEl){
-  popupEl.addEventListener("click",(e)=>{
-    if(e.target.id === "popupOverlay"){
-      popupEl.style.display = "none"
-      popupEl.classList.remove("active")
-    }
-  })
-}
-  
-async function atualizarLeve(){
+// ================= LOAD =================
+async function load(){
 
   try{
 
-    const t = turno()
-    const hoje = formatDateOnly(t.inicio)
+    const res = await fetch(API_URL)
+    const data = await res.json()
 
-    // 🔥 busca só os registros mais recentes
-    const { data, error } = await sb
-      .from("resumo_vendas")
-      .select("*")
-      .gte("data", hoje)
-      .eq("cancelado", false)
-.gt("id", window.ultimoId || 0)
-.order("id", { ascending: true })
-.limit(100)
-    if(error){
-      console.error("❌ ERRO LEVE:", error)
-      return
-    }
+    const dados = process(data)
 
-    if(!data || data.length === 0) return
-if(data.length > 0){
-  window.ultimoId = data[data.length - 1].id
-}
-    // 🔥 processa só o novo
-    const inicio = new Date(hoje + "T00:00:00")
-    const fim = new Date(hoje + "T23:59:59")
-
-    const novoProcessado = process(data, inicio, fim)
-
-    // 🔥 atualiza cache atual (sem zerar)
-    Object.keys(novoProcessado).forEach(emp => {
-
-      if(!window.dadosCache[emp]){
-        window.dadosCache[emp] = novoProcessado[emp]
-        return
-      }
-
-      const atual = window.dadosCache[emp]
-      const novo = novoProcessado[emp]
-
-atual.total += novo.total
-atual.vendas += novo.vendas
-atual.cancelados += novo.cancelados
-atual.valorCancelado += novo.valorCancelado
-
-// 🔥 NÃO SOBRESCREVER
-atual.almocoTotal += novo.almocoTotal
-atual.almocoVendas += novo.almocoVendas
-
-// 🔥 NÃO SOBRESCREVER FINAIS
-Object.entries(novo.finais).forEach(([key, val])=>{
-  atual.finais[key] = (atual.finais[key] || 0) + val
-})
-
-}) // 🔥 FECHAMENTO CORRETO DO LOOP
-
-
-      
-    // 🔥 render SEM recriar tudo
-    render(window.dadosCache, window.dadosMesCache)
-
-    console.log("⚡ Atualização leve OK")
+    render(dados)
 
   }catch(e){
-    console.error("❌ ERRO ATUALIZAÇÃO LEVE:", e)
+    console.log("❌ Erro API:", e)
   }
-}
-
-function iniciarRealtime(){
-
-  sb.channel('realtime-vendas')
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'resumo_vendas'
-      },
-      payload => {
-
-        const v = payload.new
-
-        // 🔴 ignora cancelado
-        if(v.cancelado) return
-
-        // 🔥 processa só 1 item
-        const inicio = new Date()
-        inicio.setHours(0,0,0,0)
-
-        const fim = new Date()
-        fim.setHours(23,59,59,999)
-
-        const novo = process([v], inicio, fim)
-
-        // 🔥 aplica no cache atual
-        Object.keys(novo).forEach(emp => {
-
-          if(!window.dadosCache[emp]){
-            window.dadosCache[emp] = novo[emp]
-            return
-          }
-
-          const atual = window.dadosCache[emp]
-          const n = novo[emp]
-
-          atual.total += n.total
-          atual.vendas += n.vendas
-          atual.cancelados += n.cancelados
-          atual.valorCancelado += n.valorCancelado
-
-          atual.almocoTotal += n.almocoTotal
-          atual.almocoVendas += n.almocoVendas
-
-          Object.entries(n.finais).forEach(([k,v])=>{
-            atual.finais[k] = (atual.finais[k] || 0) + v
-          })
-        })
-
-        // 🔥 render instantâneo
-        render(window.dadosCache, window.dadosMesCache)
-
-        console.log("⚡ REALTIME UPDATE", v.id)
-      }
-    )
-    .subscribe()
 
 }
 
+// ================= START =================
+window.addEventListener("DOMContentLoaded", async () => {
 
-  
+  await load()
+
+  // 🔁 atualiza a cada 10s
+  setInterval(load, 10000)
+
+})
+
 </script>
 <div id="popupOverlay" style="
   position:fixed;
