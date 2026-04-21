@@ -573,18 +573,20 @@ function process(data){
     const emp = normalizarEmpresa(v.empresa, Number(v.numero_caixa || 0))
 
     if(!result[emp]){
-      result[emp] = {
-        total:0,
-        vendas:0,
-        almocoTotal:0,
-        almocoVendas:0
-      }
+result[emp] = {
+  total:0,
+  vendas:0,
+  novos:0
+}
     }
 
     const valor = Number(v.valor)
+result[emp].total += valor
+result[emp].vendas++
 
-    result[emp].total += valor
-    result[emp].vendas++
+if(!ultimoMapa.has(v.id)){
+  result[emp].novos++
+}
 
     // almoço
     const hora = Number(v.hora?.substring(0,2) || 0)
@@ -664,8 +666,10 @@ function render(dados){
           <img src="${getLogo(emp)}" class="logo">
           <div>
             <div class="valor">${brl(d.total)}</div>
-            <div class="vendas">${d.vendas} vendas</div>
-            <div class="ticket-linha">Ticket: ${brl(ticket)}</div>
+<div class="vendas">
+  ${d.vendas} vendas 
+  ${d.novos > 0 ? `• +${d.novos}` : ""}
+</div>            <div class="ticket-linha">Ticket: ${brl(ticket)}</div>
           </div>
         </div>
         ${metasHTML}
@@ -693,16 +697,28 @@ function render(dados){
 }
 
 // ================= LOAD =================
+let ultimoMapa = new Map()
+
 async function load(){
 
   try{
 
+    document.getElementById("statusDot").classList.add("loading")
+
     const res = await fetch(API_URL)
     const data = await res.json()
+
+    const novosMapa = new Map()
+    data.forEach(d => novosMapa.set(d.id, true))
 
     const dados = process(data)
 
     render(dados)
+
+    // 🔥 atualiza base de comparação
+    ultimoMapa = novosMapa
+
+    document.getElementById("statusDot").classList.remove("loading")
 
   }catch(e){
     console.log("❌ Erro API:", e)
@@ -711,14 +727,17 @@ async function load(){
 }
 
 // ================= START =================
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", () => {
+  loop()
+})
+
+// 🔥 LOOP INTELIGENTE (NÃO TRAVA)
+async function loop(){
 
   await load()
 
-  // 🔁 atualiza a cada 10s
-  setInterval(load, 10000)
-
-})
+  setTimeout(loop, 5000) // 🔥 5 SEGUNDOS (TEMPO REAL)
+}
 
 </script>
 <div id="popupOverlay" style="
