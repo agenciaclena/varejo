@@ -697,8 +697,7 @@ function process(resumo){
 
     if(!result[nome]) return
 
-    result[nome] += Number(emp.faturamento || 0)
-
+result[nome] += Number(emp.faturamento_mes || 0)
   })
 
   return result
