@@ -562,9 +562,13 @@ function normalizarEmpresa(empBase, caixa){
 }
 
 // ================= PROCESS =================
+function removerAcentos(str){
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+}
+
 function mapearNome(nome){
 
-  nome = (nome || "").toUpperCase()
+  nome = removerAcentos(nome || "").toUpperCase()
 
   if(nome.includes("DELICIA")) return "DELICIA"
   if(nome.includes("VILLA")) return "VILLA"
@@ -577,17 +581,24 @@ function mapearNome(nome){
 
 function process(resumo){
 
-  const result = {}
+  const result = {
+    DELICIA: { total:0, vendas:0, novos:0 },
+    VILLA: { total:0, vendas:0, novos:0 },
+    PADARIA: { total:0, vendas:0, novos:0 },
+    "MERCATTO RESTAURANTE": { total:0, vendas:0, novos:0 },
+    "MERCATTO EMPORIO": { total:0, vendas:0, novos:0 }
+  }
+
+  if(!resumo || !resumo.empresas) return result
 
   resumo.empresas.forEach(emp => {
 
     const nome = mapearNome(emp.empresa)
 
-    result[nome] = {
-      total: Number(emp.faturamento || 0),
-      vendas: Number(emp.vendas || 0),
-      novos: 0
-    }
+    if(!result[nome]) return // ignora se não mapear
+
+    result[nome].total += Number(emp.faturamento || 0)
+    result[nome].vendas += Number(emp.vendas || 0)
 
   })
 
@@ -699,8 +710,10 @@ async function load(){
 
     document.getElementById("statusDot").classList.add("loading")
 
-    const res = await fetch(API_URL)
-    const data = await res.json()
+const res = await fetch(API_URL + "?t=" + Date.now(), {
+  cache: "no-store"
+})
+  const data = await res.json()
 
     const dados = process(data)
 
