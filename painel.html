@@ -802,20 +802,33 @@ const totalMes = totalMesBase + totalHoje
 
     const meta = getMetaEmpresa(emp)
 
-    let metasHTML = ""
+   let metasHTML = ""
 
-    if(meta){
-const pct1 = Math.min((totalMes / meta.prata) * 100, 100)
-const pct2 = Math.min((totalMes / meta.ouro) * 100, 100)
+if(meta){
 
-      metasHTML = `
-        <div class="metas">
-          <div class="bola prata" style="--p:${pct1}%"><span>${pct1.toFixed(0)}%</span></div>
-          <div class="bola ouro" style="--p:${pct2}%"><span>${pct2.toFixed(0)}%</span></div>
+  const pct1 = Math.min((totalMes / meta.prata) * 100, 100)
+  const pct2 = Math.min((totalMes / meta.ouro) * 100, 100)
+
+  metasHTML = `
+    <div class="metas">
+      
+      <div class="meta-item">
+        <div class="bola prata" style="--p:${pct1}%">
+          <span>${pct1.toFixed(0)}%</span>
         </div>
-      `
-    }
+        <div class="meta-valor">${brl(meta.prata)}</div>
+      </div>
 
+      <div class="meta-item">
+        <div class="bola ouro" style="--p:${pct2}%">
+          <span>${pct2.toFixed(0)}%</span>
+        </div>
+        <div class="meta-valor">${brl(meta.ouro)}</div>
+      </div>
+
+    </div>
+  `
+}
     return `
 <div class="card-top">
   ${burst}
