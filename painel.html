@@ -562,37 +562,31 @@ function normalizarEmpresa(empBase, caixa){
 }
 
 // ================= PROCESS =================
-function process(data){
+function mapearNome(nome){
+
+  nome = (nome || "").toUpperCase()
+
+  if(nome.includes("DELICIA")) return "DELICIA"
+  if(nome.includes("VILLA")) return "VILLA"
+  if(nome.includes("PADARIA")) return "PADARIA"
+  if(nome.includes("EMPORIO")) return "MERCATTO EMPÓRIO"
+  if(nome.includes("RESTAURANTE")) return "MERCATTO RESTAURANTE"
+
+  return nome
+}
+
+function process(resumo){
 
   const result = {}
 
-  data.forEach(v=>{
+  resumo.empresas.forEach(emp => {
 
-    if(v.cancelado) return
+    const nome = mapearNome(emp.empresa)
 
-    const emp = normalizarEmpresa(v.empresa, Number(v.numero_caixa || 0))
-
-    if(!result[emp]){
-result[emp] = {
-  total:0,
-  vendas:0,
-  novos:0
-}
-    }
-
-    const valor = Number(v.valor)
-result[emp].total += valor
-result[emp].vendas++
-
-if(!ultimoMapa.has(v.id)){
-  result[emp].novos++
-}
-
-    // almoço
-    const hora = Number(v.hora?.substring(0,2) || 0)
-    if(hora >= 10 && hora < 15){
-      result[emp].almocoTotal += valor
-      result[emp].almocoVendas++
+    result[nome] = {
+      total: Number(emp.faturamento || 0),
+      vendas: Number(emp.vendas || 0),
+      novos: 0
     }
 
   })
@@ -708,15 +702,13 @@ async function load(){
     const res = await fetch(API_URL)
     const data = await res.json()
 
-    const novosMapa = new Map()
-    data.forEach(d => novosMapa.set(d.id, true))
-
     const dados = process(data)
 
     render(dados)
 
-    // 🔥 atualiza base de comparação
-    ultimoMapa = novosMapa
+    // 🔥 usa direto da API (mais correto)
+    document.getElementById("barraResumo").innerHTML =
+      `Hoje: <b>${brl(data.faturamento)}</b> • ${data.vendas} vendas`
 
     document.getElementById("statusDot").classList.remove("loading")
 
