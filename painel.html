@@ -758,8 +758,8 @@ const totalMes = totalMesBase + totalHoje
     let metasHTML = ""
 
     if(meta){
-      const pct1 = Math.min((d.total/meta.prata)*100,100)
-      const pct2 = Math.min((d.total/meta.ouro)*100,100)
+const pct1 = Math.min((totalMes / meta.prata) * 100, 100)
+const pct2 = Math.min((totalMes / meta.ouro) * 100, 100)
 
       metasHTML = `
         <div class="metas">
