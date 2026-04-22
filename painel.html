@@ -693,10 +693,13 @@ function process(resumo){
 
   resumo.empresas.forEach(emp => {
 
-    const nomeOriginal = (emp.empresa || "").toUpperCase()
+    const nomeOriginal = (emp.empresa || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+
     let nome = ""
 
-    // 🔥 MAPEAMENTO FORTE (SEM ERRO)
     if(nomeOriginal.includes("PADARIA")) nome = "PADARIA"
     else if(nomeOriginal.includes("VILLA")) nome = "VILLA"
     else if(nomeOriginal.includes("EMPORIO")) nome = "MERCATTO EMPORIO"
