@@ -554,7 +554,7 @@ function normalizarEmpresa(empBase, caixa){
   if(nome.includes("PADARIA")) return "PADARIA"
 
   if(nome.includes("MERCATTO")){
-    if(caixa >= 1 && caixa <= 5) return "MERCATTO EMPÓRIO"
+    if(caixa >= 1 && caixa <= 5) return "MERCATTO EMPORIO"
     if(caixa >= 6) return "MERCATTO RESTAURANTE"
   }
 
@@ -569,7 +569,7 @@ function mapearNome(nome){
   if(nome.includes("DELICIA")) return "DELICIA"
   if(nome.includes("VILLA")) return "VILLA"
   if(nome.includes("PADARIA")) return "PADARIA"
-  if(nome.includes("EMPORIO")) return "MERCATTO EMPÓRIO"
+  if(nome.includes("EMPORIO")) return "MERCATTO EMPORIO"
   if(nome.includes("RESTAURANTE")) return "MERCATTO RESTAURANTE"
 
   return nome
@@ -600,7 +600,7 @@ const METAS = {
   "VILLA": { prata: 746600, ouro: 833000 },
   "PADARIA": { prata: 720000, ouro: 750000 },
   "MERCATTO RESTAURANTE": { prata: 850000, ouro: 900000 },
-  "MERCATTO EMPÓRIO": { prata: 650000, ouro: 690000 }
+  "MERCATTO EMPORIO": { prata: 650000, ouro: 690000 }
 }
 
 function getMetaEmpresa(nome){
@@ -609,7 +609,7 @@ function getMetaEmpresa(nome){
   if(nome.includes("PADARIA")) return METAS["PADARIA"]
   if(nome.includes("DELICIA")) return METAS["DELÍCIA"]
   if(nome.includes("RESTAURANTE")) return METAS["MERCATTO RESTAURANTE"]
-  if(nome.includes("EMPÓRIO")) return METAS["MERCATTO EMPÓRIO"]
+  if(nome.includes("EMPÓRIO")) return METAS["MERCATTO EMPORIO"]
 
   return null
 }
@@ -675,7 +675,7 @@ function render(dados){
   document.getElementById("delicia").innerHTML = montarCard("DELICIA")
   document.getElementById("padaria").innerHTML = montarCard("PADARIA")
   document.getElementById("restaurante").innerHTML = montarCard("MERCATTO RESTAURANTE")
-  document.getElementById("emporio").innerHTML = montarCard("MERCATTO EMPÓRIO")
+  document.getElementById("emporio").innerHTML = montarCard("MERCATTO EMPORIO")
 
   // TOTAL GERAL
   let total = 0
