@@ -852,17 +852,26 @@ const pct2 = Math.min((totalMes / meta.ouro) * 100, 100)
   // 🔥 ANIMAÇÃO DOS VALORES
 setTimeout(() => {
 
-  ["VILLA","DELICIA","PADARIA","MERCATTO RESTAURANTE","MERCATTO EMPORIO"]
-  .forEach(emp => {
+ ["VILLA","DELICIA","PADARIA","MERCATTO RESTAURANTE","MERCATTO EMPORIO"]
+.forEach(emp => {
 
-    const el = document.getElementById(`valor-${emp}`)
-    if(!el) return
+  const el = document.getElementById(`valor-${emp}`)
+  if(!el) return
 
-    const valor = dados[emp]?.total || 0
+  const valor = dados[emp]?.total || 0
 
+  const vendasAntes = vendasAnteriores[emp] || 0
+  const vendasAgora = dados[emp]?.vendas || 0
+
+  const mudou = vendasAgora > vendasAntes
+
+  if(mudou){
     animarNumero(el, valor)
+  }else{
+    el.innerText = brl(valor) // 🔥 fica estático
+  }
 
-  })
+})
 
 }, 50)
   // TOTAL GERAL
