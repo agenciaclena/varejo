@@ -745,7 +745,12 @@ function render(dados, dadosMes){
       almocoTotal:0,
       almocoVendas:0
     }
-const totalMes = dadosMes[emp] || 0
+const totalMesBase = dadosMes[emp] || 0
+const totalHoje = d.total || 0
+
+const totalMes = totalMesBase + totalHoje
+  
+    
     const ticket = d.vendas ? d.total / d.vendas : 0
 
     const meta = getMetaEmpresa(emp)
