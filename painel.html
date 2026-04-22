@@ -570,11 +570,12 @@ function mapearNome(nome){
 
   nome = removerAcentos(nome || "").toUpperCase()
 
-  if(nome.includes("DELICIA")) return "DELICIA"
-  if(nome.includes("VILLA")) return "VILLA"
+  // 🔥 MAIS ESPECÍFICO PRIMEIRO
   if(nome.includes("PADARIA")) return "PADARIA"
+  if(nome.includes("VILLA")) return "VILLA"
   if(nome.includes("EMPORIO")) return "MERCATTO EMPORIO"
   if(nome.includes("RESTAURANTE")) return "MERCATTO RESTAURANTE"
+  if(nome.includes("DELICIA")) return "DELICIA"
 
   return nome
 }
