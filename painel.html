@@ -675,6 +675,38 @@ function process(resumo){
   return result
 }
 
+
+
+
+
+  function processMes(resumo){
+
+  const result = {
+    DELICIA: 0,
+    VILLA: 0,
+    PADARIA: 0,
+    "MERCATTO RESTAURANTE": 0,
+    "MERCATTO EMPORIO": 0
+  }
+
+  if(!resumo || !resumo.empresas) return result
+
+  resumo.empresas.forEach(emp => {
+
+    const nome = mapearNome(emp.empresa)
+
+    if(!result[nome]) return
+
+    result[nome] += Number(emp.faturamento || 0)
+
+  })
+
+  return result
+}
+
+
+
+  
 // ================= METAS =================
 
 
@@ -693,17 +725,17 @@ function getLogo(emp){
 }
 
 // ================= RENDER =================
-function render(dados){
-
+function render(dados, dadosMes){
   function montarCard(emp){
 
     const d = dados[emp] || {
+      
       total:0,
       vendas:0,
       almocoTotal:0,
       almocoVendas:0
     }
-
+const totalMes = dadosMes[emp] || 0
     const ticket = d.vendas ? d.total / d.vendas : 0
 
     const meta = getMetaEmpresa(emp)
@@ -727,7 +759,8 @@ function render(dados){
         <div style="display:flex;gap:10px">
           <img src="${getLogo(emp)}" class="logo">
           <div>
-            <div class="valor">${brl(d.total)}</div>
+            <div class="valor-mes">${brl(totalMes)}</div>
+<div class="valor">${brl(d.total)}</div>
 <div class="vendas">
   ${d.vendas} vendas 
   ${d.novos > 0 ? `• +${d.novos}` : ""}
@@ -775,9 +808,29 @@ const res = await fetch(API_URL + "?t=" + Date.now(), {
 
   const data = await res.json()
 
-    const dados = process(data)
+const dadosDia = process(data)
 
-    render(dados)
+let dadosMes = {}
+
+if(API_MES){
+  try{
+    const resMes = await fetch(API_MES + "?t=" + Date.now(), {
+      cache: "no-store"
+    })
+    const dataMes = await resMes.json()
+
+    dadosMes = processMes(dataMes)
+
+  }catch(e){
+    console.log("❌ erro mes:", e)
+  }
+}
+
+render(dadosDia, dadosMes)
+
+
+
+    
 
     // 🔥 usa direto da API (mais correto)
     document.getElementById("barraResumo").innerHTML =
