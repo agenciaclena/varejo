@@ -533,9 +533,19 @@ header div:first-child{
 
 <script>
 
-// ================= CONFIG =================
-const API_URL = "https://revision-peripherals-glad-martha.trycloudflare.com/resumo-dia"
+// ================= SUPABASE =================
+const supabase = window.supabase.createClient(
+  "SUA_SUPABASE_URL",
+  "SUA_SUPABASE_ANON_KEY"
+)
 
+// 🔥 DINÂMICOS
+let API_URL = ""
+let API_MES = ""
+let METAS = {}
+
+
+  
 // ================= FORMAT =================
 const brl = v => Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
 
@@ -580,6 +590,66 @@ function mapearNome(nome){
   return nome
 }
 
+
+
+async function carregarConfig(){
+
+  const { data, error } = await supabase
+    .from("url_api")
+    .select("*")
+
+  if(error){
+    console.log("❌ Erro URL API:", error)
+    return
+  }
+
+  data.forEach(item => {
+
+    if(item.tipo === "resumo_dia"){
+      API_URL = item.url
+    }
+
+    if(item.tipo === "resumo_mes"){
+      API_MES = item.url
+    }
+
+  })
+
+  console.log("✅ URLs:", API_URL, API_MES)
+}
+
+
+
+async function carregarMetas(){
+
+  const { data, error } = await supabase
+    .from("metas_empresas")
+    .select("*")
+
+  if(error){
+    console.log("❌ Erro metas:", error)
+    return
+  }
+
+  const mapa = {}
+
+  data.forEach(m => {
+
+    const nome = mapearNome(m.empresa)
+
+    mapa[nome] = {
+      prata: Number(m.meta_prata || 0),
+      ouro: Number(m.meta_ouro || 0)
+    }
+
+  })
+
+  METAS = mapa
+
+  console.log("✅ Metas carregadas:", METAS)
+}
+
+  
 function process(resumo){
 
   const result = {
@@ -607,23 +677,10 @@ function process(resumo){
 }
 
 // ================= METAS =================
-const METAS = {
-  "DELICIA": { prata: 545000, ouro: 575000 },
-  "VILLA": { prata: 746600, ouro: 833000 },
-  "PADARIA": { prata: 720000, ouro: 750000 },
-  "MERCATTO RESTAURANTE": { prata: 850000, ouro: 900000 },
-  "MERCATTO EMPORIO": { prata: 650000, ouro: 690000 }
-}
+
 
 function getMetaEmpresa(nome){
-
-  if(nome.includes("VILLA")) return METAS["VILLA"]
-  if(nome.includes("PADARIA")) return METAS["PADARIA"]
-  if(nome.includes("DELICIA")) return METAS["DELICIA"]
-  if(nome.includes("RESTAURANTE")) return METAS["MERCATTO RESTAURANTE"]
-  if(nome.includes("EMPORIO")) return METAS["MERCATTO EMPORIO"]
-
-  return null
+  return METAS[nome] || null
 }
 
 // ================= LOGO =================
@@ -711,9 +768,12 @@ async function load(){
 
     document.getElementById("statusDot").classList.add("loading")
 
+if(!API_URL) return
+
 const res = await fetch(API_URL + "?t=" + Date.now(), {
   cache: "no-store"
 })
+
   const data = await res.json()
 
     const dados = process(data)
@@ -733,7 +793,20 @@ const res = await fetch(API_URL + "?t=" + Date.now(), {
 }
 
 // ================= START =================
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
+
+  // 🔥 CARREGA CONFIG PRIMEIRO
+  await carregarConfig()
+
+  // 🔥 CARREGA METAS
+  await carregarMetas()
+
+  // 🔥 GARANTE QUE TEM URL
+  if(!API_URL){
+    console.log("❌ API_URL não carregada")
+    return
+  }
+
   loop()
 })
 
