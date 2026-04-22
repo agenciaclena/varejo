@@ -679,7 +679,7 @@ function process(resumo){
 
 
 
-  function processMes(resumo){
+ function processMes(resumo){
 
   const result = {
     DELICIA: 0,
@@ -693,15 +693,24 @@ function process(resumo){
 
   resumo.empresas.forEach(emp => {
 
-    const nome = mapearNome(emp.empresa)
+    const nomeOriginal = (emp.empresa || "").toUpperCase()
+    let nome = ""
 
-    if(!result[nome]) return
+    // 🔥 MAPEAMENTO FORTE (SEM ERRO)
+    if(nomeOriginal.includes("PADARIA")) nome = "PADARIA"
+    else if(nomeOriginal.includes("VILLA")) nome = "VILLA"
+    else if(nomeOriginal.includes("EMPORIO")) nome = "MERCATTO EMPORIO"
+    else if(nomeOriginal.includes("RESTAURANTE")) nome = "MERCATTO RESTAURANTE"
+    else if(nomeOriginal.includes("DELICIA")) nome = "DELICIA"
 
-result[nome] += Number(emp.faturamento_mes || emp.faturamento || 0)  })
+    if(!nome) return
+
+    result[nome] += Number(emp.faturamento_mes || 0)
+
+  })
 
   return result
 }
-
 
 
   
