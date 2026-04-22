@@ -497,6 +497,40 @@ header div:first-child{
 .metas div{
   text-align:center;
 }
+
+
+
+  .burst-vendas{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background:#22c55e;
+  color:#000;
+  font-size:12px;
+  font-weight:800;
+  padding:4px 8px;
+  border-radius:8px;
+  animation: subirFade 2s ease forwards;
+  pointer-events:none;
+}
+
+@keyframes subirFade{
+  0%{
+    opacity:0;
+    transform:translateY(20px) scale(0.8);
+  }
+  30%{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+  100%{
+    opacity:0;
+    transform:translateY(-30px) scale(1.1);
+  }
+}
+
+
+
     
 </style>
 </head>
@@ -745,6 +779,19 @@ function render(dados, dadosMes){
       almocoTotal:0,
       almocoVendas:0
     }
+
+const vendasAntes = vendasAnteriores[emp] || 0
+const diff = d.vendas - vendasAntes
+
+vendasAnteriores[emp] = d.vendas
+
+let burst = ""
+
+if(diff > 0){
+  burst = `<div class="burst-vendas">+${diff} vendas</div>`
+}
+
+    
 const totalMesBase = dadosMes[emp] || 0
 const totalHoje = d.total || 0
 
@@ -770,12 +817,14 @@ const pct2 = Math.min((totalMes / meta.ouro) * 100, 100)
     }
 
     return `
-      <div class="card-top">
-        <div style="display:flex;gap:10px">
+<div class="card-top">
+  ${burst}
+  
+  <div style="display:flex;gap:10px">
           <img src="${getLogo(emp)}" class="logo">
           <div>
             <div class="valor-mes">${brl(totalMes)}</div>
-<div class="valor">${brl(d.total)}</div>
+<div class="valor" id="valor-${emp}">${brl(d.total)}</div>
 <div class="vendas">
   ${d.vendas} vendas 
   ${d.novos > 0 ? `• +${d.novos}` : ""}
@@ -793,6 +842,29 @@ const pct2 = Math.min((totalMes / meta.ouro) * 100, 100)
   document.getElementById("restaurante").innerHTML = montarCard("MERCATTO RESTAURANTE")
   document.getElementById("emporio").innerHTML = montarCard("MERCATTO EMPORIO")
 
+
+
+
+
+
+
+
+  // 🔥 ANIMAÇÃO DOS VALORES
+setTimeout(() => {
+
+  ["VILLA","DELICIA","PADARIA","MERCATTO RESTAURANTE","MERCATTO EMPORIO"]
+  .forEach(emp => {
+
+    const el = document.getElementById(`valor-${emp}`)
+    if(!el) return
+
+    const valor = dados[emp]?.total || 0
+
+    animarNumero(el, valor)
+
+  })
+
+}, 50)
   // TOTAL GERAL
   let total = 0
   let vendas = 0
@@ -808,7 +880,7 @@ const pct2 = Math.min((totalMes / meta.ouro) * 100, 100)
 
 // ================= LOAD =================
 let ultimoMapa = new Map()
-
+let vendasAnteriores = {}
 async function load(){
 
   try{
@@ -885,6 +957,36 @@ async function loop(){
   setTimeout(loop, 5000) // 🔥 5 SEGUNDOS (TEMPO REAL)
 }
 
+
+
+
+
+  function animarNumero(el, valorFinal){
+
+  const valorAtual = Number(el.dataset.valor || 0)
+  const duracao = 800
+  const inicio = performance.now()
+
+  function frame(agora){
+    const progresso = Math.min((agora - inicio) / duracao, 1)
+
+    const valor = valorAtual + (valorFinal - valorAtual) * progresso
+
+    el.innerText = brl(valor)
+    el.dataset.valor = valorFinal
+
+    if(progresso < 1){
+      requestAnimationFrame(frame)
+    }
+  }
+
+  requestAnimationFrame(frame)
+}
+
+
+
+
+  
 </script>
 <div id="popupOverlay" style="
   position:fixed;
