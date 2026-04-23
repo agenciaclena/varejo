@@ -922,9 +922,14 @@ async function load(){
 
 if(!API_URL) return
 
-const res = await fetch(API_URL + "?t=" + Date.now(), {
-  cache: "no-store"
-})
+const PROXY = "https://api.allorigins.win/raw?url="
+
+const res = await fetch(
+  PROXY + encodeURIComponent(API_URL + "?t=" + Date.now()),
+  {
+    cache: "no-store"
+  }
+)
   const data = await res.json()
 
 const dadosDia = process(data)
@@ -933,9 +938,12 @@ let dadosMes = {}
 
 if(API_MES){
   try{
-const resMes = await fetch(API_MES + "?t=" + Date.now(), {
-  cache: "no-store"
-})
+const resMes = await fetch(
+  PROXY + encodeURIComponent(API_MES + "?t=" + Date.now()),
+  {
+    cache: "no-store"
+  }
+)
     const dataMes = await resMes.json()
 
     dadosMes = processMes(dataMes)
